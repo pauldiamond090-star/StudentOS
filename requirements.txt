@@ -1,5 +1,2 @@
 Flask
-Flask-Login
-Flask-SQLAlchemy
 gunicorn
-Werkzeug
