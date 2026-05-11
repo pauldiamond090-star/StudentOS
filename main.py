@@ -8,11 +8,17 @@ def home():
 
 @app.route("/login")
 def login():
-    return "<h1>Login Page Coming Soon</h1>"
+    return """
+    <h1>Login Page</h1>
+    <p>StudentOS Login System Coming Soon</p>
+    """
 
 @app.route("/register")
 def register():
-    return "<h1>Register Page Coming Soon</h1>"
+    return """
+    <h1>Register Page</h1>
+    <p>StudentOS Registration System Coming Soon</p>
+    """
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
