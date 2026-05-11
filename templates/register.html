@@ -15,7 +15,40 @@
     <input type="email" name="email" placeholder="Email" required>
     <br><br>
 
-    <input type="password" name="password" placeholder="Password" required>
+    <input type="password"<label>Password</label><br>
+
+<input type="password"
+       id="password"
+       name="password"
+       required
+       minlength="8"
+       pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
+       title="Password must be at least 8 characters and contain letters and numbers">
+
+<br><br>
+
+<input type="checkbox"
+       onclick="showPassword()">
+
+Show Password
+
+<br><br>
+
+<script>
+
+function showPassword() {
+
+    var x = document.getElementById("password");
+
+    if (x.type === "password") {
+        x.type = "text";
+    } else {
+        x.type = "password";
+    }
+
+}
+
+</script> name="password" placeholder="Password" required>
     <br><br>
 
     <select name="role">
