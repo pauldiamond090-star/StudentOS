@@ -1,5 +1,4 @@
 from flask import Flask, render_template
-import os
 
 app = Flask(__name__)
 
@@ -9,16 +8,11 @@ def home():
 
 @app.route("/login")
 def login():
-    return render_template("login.html")
+    return "<h1>Login Page Coming Soon</h1>"
 
 @app.route("/register")
 def register():
-    return render_template("register.html")
-
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
+    return "<h1>Register Page Coming Soon</h1>"
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
