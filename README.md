@@ -1,37 +1,49 @@
 # StudentOS
 
-StudentOS is an AI-powered student operating system designed for:
+StudentOS is an AI-powered school management and learning platform for:
 
 - Nursery Schools
 - Primary Schools
-- Secondary Schools
+- Junior Secondary Schools
+- Senior Secondary Schools
 - Universities
 
 ## Features
 
+- Student Management
+- Subject Management
+- Timetable System
+- Teachers API
+- Results System
 - AI Tutor
-- Homework Scanner
-- OCR Text Extraction
-- Exam Practice
-- Notes System
+- Homework Assistance
+- Exam Preparation
 - Study Planner
-- Timetable
-- Flashcards
-- GPA Calculator
-- Voice Learning
-- Offline Learning
-- Scholarship Alerts
-- Career Guidance
+- Essay Submission
 
-## Supported Exams
+## School Levels
 
-- JAMB
-- WAEC
-- NECO
-- GCE
-- SAT
-- IELTS
-- TOEFL
+### Nursery
+- Nursery 1
+- Nursery 2
+
+### Primary
+- Primary 1
+- Primary 2
+- Primary 3
+- Primary 4
+- Primary 5
+- Primary 6
+
+### Junior Secondary
+- JSS1
+- JSS2
+- JSS3
+
+### Senior Secondary
+- Science Class
+- Commercial Class
+- Art Class
 
 ## Built With
 
@@ -39,22 +51,25 @@ StudentOS is an AI-powered student operating system designed for:
 - Python
 - Railway
 - GitHub
+- Pydantic
 
 ## API Endpoints
 
 - `/`
+- `/students`
+- `/students/add`
 - `/nursery`
 - `/primary`
-- `/secondary`
-- `/university`
-- `/exams`
-- `/features`
-- `/tools`
+- `/junior-secondary`
+- `/senior-secondary`
+- `/results`
+- `/timetable`
+- `/teachers`
 
 ## Deployment
 
-Deployed using Railway.
+Deployed with Railway.
 
-## Author
+## Developer
 
 StudentOS Project
