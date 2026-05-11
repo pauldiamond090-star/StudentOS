@@ -1,403 +1,323 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 app = FastAPI(title="StudentOS")
 
+=========================================================
 
-# =========================================================
-# MODELS
-# =========================================================
+TEMP DATABASE
 
-class Student(BaseModel):
-    name: str
-    age: int
-    class_name: str
+=========================================================
 
+users = []
 
-students = []
+=========================================================
 
+MODELS
 
-# =========================================================
-# HOME
-# =========================================================
+=========================================================
+
+class User(BaseModel):
+username: str
+password: str
+role: str
+
+class LoginData(BaseModel):
+username: str
+password: str
+
+=========================================================
+
+HOME
+
+=========================================================
 
 @app.get("/")
 def home():
-    return {
-        "message": "Welcome to StudentOS",
-        "status": "running",
-        "platform": "AI Powered School System"
-    }
+return {
+"message": "Welcome to StudentOS",
+"status": "running",
+"platform": "Multi User AI School Platform"
+}
 
+=========================================================
 
-# =========================================================
-# STUDENT MANAGEMENT
-# =========================================================
+REGISTER
 
-@app.post("/students/add")
-def add_student(student: Student):
-    students.append(student.dict())
+=========================================================
 
-    return {
-        "message": "Student added successfully",
-        "student": student
-    }
+@app.post("/register")
+def register(user: User):
 
+for existing_user in users:  
+    if existing_user["username"] == user.username:  
+        raise HTTPException(  
+            status_code=400,  
+            detail="Username already exists"  
+        )  
 
-@app.get("/students")
-def get_students():
-    return students
+users.append(user.dict())  
 
+return {  
+    "message": "User registered successfully",  
+    "user": user  
+}
 
-# =========================================================
-# NURSERY CLASSES
-# =========================================================
+=========================================================
+
+LOGIN
+
+=========================================================
+
+@app.post("/login")
+def login(data: LoginData):
+
+for user in users:  
+    if (  
+        user["username"] == data.username  
+        and user["password"] == data.password  
+    ):  
+        return {  
+            "message": "Login successful",  
+            "role": user["role"]  
+        }  
+
+raise HTTPException(  
+    status_code=401,  
+    detail="Invalid username or password"  
+)
+
+=========================================================
+
+USERS
+
+=========================================================
+
+@app.get("/users")
+def get_users():
+return users
+
+=========================================================
+
+NURSERY
+
+=========================================================
 
 @app.get("/nursery")
 def nursery():
-    return {
-        "classes": {
-            "Nursery 1": [
-                "Alphabet",
-                "Numbers",
-                "Rhymes",
-                "Drawing",
-                "Coloring",
-                "Storytelling",
-                "Health Habits",
-                "Writing Practice"
-            ],
+return {
+"Nursery 1": [
+"Alphabet",
+"Numbers",
+"Rhymes",
+"Drawing",
+"Coloring"
+],
 
-            "Nursery 2": [
-                "English",
-                "Mathematics",
-                "Rhymes",
-                "Basic Science",
-                "Drawing",
-                "Handwriting",
-                "Moral Instruction",
-                "Physical Education"
-            ]
-        }
-    }
+"Nursery 2": [  
+        "English",  
+        "Mathematics",  
+        "Basic Science",  
+        "Writing",  
+        "Health Habits"  
+    ]  
+}
 
+=========================================================
 
-# =========================================================
-# PRIMARY CLASSES
-# =========================================================
+PRIMARY
+
+=========================================================
 
 @app.get("/primary")
 def primary():
-    return {
-        "classes": {
+return {
+"Primary 1": [
+"English Language",
+"Mathematics",
+"Basic Science",
+"Social Studies",
+"Computer Studies"
+],
 
-            "Primary 1": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Social Studies",
-                "Civic Education",
-                "Computer Studies",
-                "Cultural and Creative Arts",
-                "Physical and Health Education",
-                "Agricultural Science"
-            ],
+"Primary 2": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "Social Studies",  
+        "Agricultural Science"  
+    ],  
 
-            "Primary 2": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Social Studies",
-                "Civic Education",
-                "Computer Studies",
-                "Verbal Reasoning",
-                "Quantitative Reasoning",
-                "Agricultural Science"
-            ],
+    "Primary 3": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "Computer Science",  
+        "Home Economics"  
+    ],  
 
-            "Primary 3": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Social Studies",
-                "Computer Studies",
-                "Civic Education",
-                "Cultural and Creative Arts",
-                "Home Economics",
-                "Agricultural Science"
-            ],
+    "Primary 4": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "French",  
+        "Computer Science"  
+    ],  
 
-            "Primary 4": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Social Studies",
-                "Computer Science",
-                "French",
-                "Civic Education",
-                "Agricultural Science",
-                "Home Economics"
-            ],
+    "Primary 5": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "Agricultural Science",  
+        "Computer Science"  
+    ],  
 
-            "Primary 5": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Social Studies",
-                "Computer Science",
-                "French",
-                "Agricultural Science",
-                "Verbal Reasoning",
-                "Quantitative Reasoning"
-            ],
+    "Primary 6": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "Computer Science",  
+        "Civic Education"  
+    ]  
+}
 
-            "Primary 6": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Social Studies",
-                "Computer Science",
-                "Civic Education",
-                "French",
-                "Agricultural Science",
-                "Home Economics"
-            ]
-        }
-    }
+=========================================================
 
+JUNIOR SECONDARY
 
-# =========================================================
-# JUNIOR SECONDARY SCHOOL
-# =========================================================
+=========================================================
 
 @app.get("/junior-secondary")
 def junior_secondary():
-    return {
-        "classes": {
+return {
+"JSS1": [
+"English Language",
+"Mathematics",
+"Basic Science",
+"Basic Technology",
+"Computer Science",
+"Business Studies"
+],
 
-            "JSS1": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Basic Technology",
-                "Social Studies",
-                "Computer Science",
-                "Business Studies",
-                "Civic Education",
-                "Agricultural Science",
-                "Cultural and Creative Arts",
-                "French",
-                "Home Economics"
-            ],
+"JSS2": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "Agricultural Science",  
+        "Computer Science",  
+        "French"  
+    ],  
 
-            "JSS2": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Basic Technology",
-                "Social Studies",
-                "Computer Science",
-                "Business Studies",
-                "Civic Education",
-                "Agricultural Science",
-                "French",
-                "Home Economics",
-                "Security Education"
-            ],
+    "JSS3": [  
+        "English Language",  
+        "Mathematics",  
+        "Basic Science",  
+        "Computer Science",  
+        "Business Studies",  
+        "Civic Education"  
+    ]  
+}
 
-            "JSS3": [
-                "English Language",
-                "Mathematics",
-                "Basic Science",
-                "Basic Technology",
-                "Social Studies",
-                "Computer Science",
-                "Business Studies",
-                "Civic Education",
-                "Agricultural Science",
-                "French",
-                "Home Economics",
-                "Cultural and Creative Arts"
-            ]
-        }
-    }
+=========================================================
 
+SENIOR SECONDARY
 
-# =========================================================
-# SENIOR SECONDARY SCHOOL
-# =========================================================
+=========================================================
 
 @app.get("/senior-secondary")
 def senior_secondary():
-    return {
-        "classes": {
+return {
+"Science": [
+"Physics",
+"Chemistry",
+"Biology",
+"Further Mathematics",
+"Computer Science"
+],
 
-            "SS1 Science": [
-                "English Language",
-                "Mathematics",
-                "Physics",
-                "Chemistry",
-                "Biology",
-                "Computer Science",
-                "Further Mathematics",
-                "Agricultural Science",
-                "Civic Education"
-            ],
+"Commercial": [  
+        "Economics",  
+        "Commerce",  
+        "Accounting",  
+        "Marketing",  
+        "Office Practice"  
+    ],  
 
-            "SS2 Science": [
-                "English Language",
-                "Mathematics",
-                "Physics",
-                "Chemistry",
-                "Biology",
-                "Computer Science",
-                "Further Mathematics",
-                "Technical Drawing",
-                "Civic Education"
-            ],
+    "Arts": [  
+        "Government",  
+        "Literature",  
+        "History",  
+        "CRS",  
+        "Fine Arts"  
+    ]  
+}
 
-            "SS3 Science": [
-                "English Language",
-                "Mathematics",
-                "Physics",
-                "Chemistry",
-                "Biology",
-                "Computer Science",
-                "Further Mathematics",
-                "Agricultural Science",
-                "Civic Education"
-            ],
+=========================================================
 
-            "SS1 Commercial": [
-                "English Language",
-                "Mathematics",
-                "Economics",
-                "Commerce",
-                "Accounting",
-                "Marketing",
-                "Computer Science",
-                "Civic Education"
-            ],
+UNIVERSITY / INSTITUTIONS
 
-            "SS2 Commercial": [
-                "English Language",
-                "Mathematics",
-                "Economics",
-                "Commerce",
-                "Accounting",
-                "Office Practice",
-                "Computer Science",
-                "Civic Education"
-            ],
+=========================================================
 
-            "SS3 Commercial": [
-                "English Language",
-                "Mathematics",
-                "Economics",
-                "Commerce",
-                "Accounting",
-                "Marketing",
-                "Computer Science",
-                "Civic Education"
-            ],
+@app.get("/institutions")
+def institutions():
+return {
+"Engineering": [
+"Mechanical Engineering",
+"Civil Engineering",
+"Electrical Engineering",
+"Computer Engineering"
+],
 
-            "SS1 Art": [
-                "English Language",
-                "Mathematics",
-                "Government",
-                "Literature",
-                "Christian Religious Studies",
-                "Civic Education",
-                "Fine Arts",
-                "Computer Science"
-            ],
+"Medical Sciences": [  
+        "Medicine",  
+        "Nursing",  
+        "Pharmacy",  
+        "Anatomy"  
+    ],  
 
-            "SS2 Art": [
-                "English Language",
-                "Mathematics",
-                "Government",
-                "Literature",
-                "Christian Religious Studies",
-                "Civic Education",
-                "History",
-                "Computer Science"
-            ],
+    "Sciences": [  
+        "Computer Science",  
+        "Physics",  
+        "Chemistry",  
+        "Biochemistry",  
+        "Mathematics"  
+    ],  
 
-            "SS3 Art": [
-                "English Language",
-                "Mathematics",
-                "Government",
-                "Literature",
-                "Christian Religious Studies",
-                "Civic Education",
-                "History",
-                "Computer Science"
-            ]
-        }
-    }
+    "Management Sciences": [  
+        "Accounting",  
+        "Business Administration",  
+        "Marketing",  
+        "Banking and Finance"  
+    ],  
 
+    "Arts and Humanities": [  
+        "English",  
+        "History",  
+        "Philosophy",  
+        "Linguistics"  
+    ]  
+}
 
-# =========================================================
-# RESULTS
-# =========================================================
+=========================================================
 
-@app.get("/results")
-def results():
-    return {
-        "results": [
-            {
-                "name": "Paul",
-                "class": "SS2 Science",
-                "average": 89
-            },
-            {
-                "name": "Grace",
-                "class": "Primary 5",
-                "average": 92
-            }
-        ]
-    }
+DASHBOARD
 
+=========================================================
 
-# =========================================================
-# TIMETABLE
-# =========================================================
-
-@app.get("/timetable")
-def timetable():
-    return {
-        "Monday": [
-            "English",
-            "Mathematics",
-            "Physics",
-            "Chemistry"
-        ],
-
-        "Tuesday": [
-            "Biology",
-            "Computer Science",
-            "Economics",
-            "Civic Education"
-        ]
-    }
-
-
-# =========================================================
-# TEACHERS
-# =========================================================
-
-@app.get("/teachers")
-def teachers():
-    return {
-        "teachers": [
-            {
-                "name": "Mr John",
-                "subject": "Mathematics"
-            },
-
-            {
-                "name": "Mrs Grace",
-                "subject": "English Language"
-            }
-        ]
-    }
+@app.get("/dashboard")
+def dashboard():
+return {
+"features": [
+"Student Login",
+"Teacher Login",
+"Admin Login",
+"Homework Upload",
+"AI Tutor",
+"Timetable",
+"Exam Practice",
+"Results",
+"Subjects",
+"Assignments",
+"Study Planner"
+]
+}
