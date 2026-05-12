@@ -29,19 +29,11 @@ def init_db():
 init_db()
 
 # =========================
-# SPLASH SCREEN
+# HOME PAGE
 # =========================
 
 @app.route("/")
-def splash():
-    return render_template("splash.html")
-
-# =========================
-# WELCOME PAGE
-# =========================
-
-@app.route("/welcome")
-def welcome():
+def home():
     return render_template("index.html")
 
 # =========================
@@ -61,15 +53,15 @@ def register():
         conn = sqlite3.connect("studentos.db")
         cursor = conn.cursor()
 
-        cursor.execute("""
-        INSERT INTO users (fullname, email, password, role)
-        VALUES (?, ?, ?, ?)
-        """, (fullname, email, password, role))
+        cursor.execute(
+            "INSERT INTO users (fullname, email, password, role) VALUES (?, ?, ?, ?)",
+            (fullname, email, password, role)
+        )
 
         conn.commit()
         conn.close()
 
-        return redirect(url_for("login"))
+        return render_template("login.html")
 
     return render_template("register.html")
 
@@ -88,10 +80,10 @@ def login():
         conn = sqlite3.connect("studentos.db")
         cursor = conn.cursor()
 
-        cursor.execute("""
-        SELECT * FROM users
-        WHERE email=? AND password=?
-        """, (email, password))
+        cursor.execute(
+            "SELECT * FROM users WHERE email=? AND password=?",
+            (email, password)
+        )
 
         user = cursor.fetchone()
 
@@ -99,16 +91,12 @@ def login():
 
         if user:
 
-            role = user[4]
+            if user[4] == "Teacher":
+                return render_template("teacher_dashboard.html")
 
-            if role == "Teacher":
-                return redirect(url_for("teacher_dashboard"))
+            return render_template("Student_dashboard.html")
 
-            else:
-                return redirect(url_for("student_dashboard"))
-
-        else:
-            return "Invalid Login Details"
+        return "Invalid Login Details"
 
     return render_template("login.html")
 
@@ -127,6 +115,7 @@ def student_dashboard():
 @app.route("/teacher_dashboard")
 def teacher_dashboard():
     return render_template("teacher_dashboard.html")
+
 # =========================
 # HOMEWORK UPLOAD
 # =========================
@@ -141,7 +130,6 @@ def homework():
     if request.method == "POST":
 
         subject = request.form["subject"]
-
         file = request.files["homework"]
 
         if file:
@@ -158,9 +146,6 @@ def homework():
             return f"Homework uploaded successfully for {subject}"
 
     return render_template("homework.html")
-# =========================
-# RUN APP
-# =========================
 
 if __name__ == "__main__":
 app.run(host="0.0.0.0", port=5000)
