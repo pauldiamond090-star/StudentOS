@@ -1,9 +1,19 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 import os
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+# =========================
+# CONFIG
+# =========================
+
+UPLOAD_FOLDER = "uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Create uploads folder if it doesn't exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # =========================
 # DATABASE SETUP
@@ -61,7 +71,7 @@ def register():
         conn.commit()
         conn.close()
 
-        return render_template("login.html")
+        return redirect(url_for("login"))
 
     return render_template("register.html")
 
@@ -91,12 +101,16 @@ def login():
 
         if user:
 
-            if user[4] == "Teacher":
-                return render_template("teacher_dashboard.html")
+            role = user[4]
 
-            return render_template("Student_dashboard.html")
+            if role == "student":
+                return redirect(url_for("student_dashboard"))
 
-        return "Invalid Login Details"
+            elif role == "teacher":
+                return redirect(url_for("teacher_dashboard"))
+
+        else:
+            return "Invalid login details"
 
     return render_template("login.html")
 
@@ -106,7 +120,7 @@ def login():
 
 @app.route("/student_dashboard")
 def student_dashboard():
-    return render_template("Student_dashboard.html")
+    return render_template("student_dashboard.html")
 
 # =========================
 # TEACHER DASHBOARD
@@ -120,16 +134,13 @@ def teacher_dashboard():
 # HOMEWORK UPLOAD
 # =========================
 
-UPLOAD_FOLDER = "uploads"
-
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
 @app.route("/homework", methods=["GET", "POST"])
 def homework():
 
     if request.method == "POST":
 
         subject = request.form["subject"]
+
         file = request.files["homework"]
 
         if file:
@@ -147,5 +158,9 @@ def homework():
 
     return render_template("homework.html")
 
+# =========================
+# RUN APP
+# =========================
+
 if __name__ == "__main__":
-app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000)
