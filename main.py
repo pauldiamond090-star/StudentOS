@@ -1,7 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, request, redirect, render_template_string
 import sqlite3
 import os
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -16,10 +15,10 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fullname TEXT,
-        email TEXT UNIQUE,
-        password TEXT,
-        role TEXT
+        fullname TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL
     )
     """)
 
@@ -34,7 +33,26 @@ init_db()
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return render_template_string("""
+    <html>
+    <head>
+        <title>StudentOS</title>
+    </head>
+    <body style="font-family: Arial; padding: 40px;">
+
+        <h1>Welcome to StudentOS</h1>
+
+        <a href="/register">
+            <button>Register</button>
+        </a>
+
+        <a href="/login">
+            <button>Login</button>
+        </a>
+
+    </body>
+    </html>
+    """)
 
 # =========================
 # REGISTER
@@ -42,7 +60,9 @@ def home():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+
     if request.method == "POST":
+
         fullname = request.form["fullname"]
         email = request.form["email"]
         password = request.form["password"]
@@ -52,7 +72,7 @@ def register():
             conn = sqlite3.connect("studentos.db")
             cursor = conn.cursor()
 
-            # Check if email already exists
+            # Check existing email
             cursor.execute(
                 "SELECT * FROM users WHERE email = ?",
                 (email,)
@@ -62,9 +82,9 @@ def register():
 
             if existing_user:
                 conn.close()
-                return "Email already registered. Try another email."
+                return "Email already exists."
 
-            # Insert new user
+            # Insert user
             cursor.execute(
                 "INSERT INTO users (fullname, email, password, role) VALUES (?, ?, ?, ?)",
                 (fullname, email, password, role)
@@ -73,12 +93,45 @@ def register():
             conn.commit()
             conn.close()
 
-            return "Registration successful!"
+            return redirect("/login")
 
         except Exception as e:
             return f"Error: {str(e)}"
 
-    return render_template("register.html")
+    return render_template_string("""
+    <html>
+    <head>
+        <title>Register</title>
+    </head>
+    <body style="font-family: Arial; padding: 40px;">
+
+        <h2>Create Account</h2>
+
+        <form method="POST">
+
+            <input type="text" name="fullname" placeholder="Full Name" required>
+            <br><br>
+
+            <input type="email" name="email" placeholder="Email" required>
+            <br><br>
+
+            <input type="password" name="password" placeholder="Password" required>
+            <br><br>
+
+            <select name="role">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+            </select>
+
+            <br><br>
+
+            <button type="submit">Register</button>
+
+        </form>
+
+    </body>
+    </html>
+    """)
 
 # =========================
 # LOGIN
@@ -86,14 +139,17 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-ll        email = request.form["email"]
+
+    if request.method == "POST":
+
+        email = request.form["email"]
         password = request.form["password"]
 
         conn = sqlite3.connect("studentos.db")
         cursor = conn.cursor()
 
         cursor.execute(
-            "SELECT * FROM users WHERE email=? AND password=?",
+            "SELECT * FROM users WHERE email = ? AND password = ?",
             (email, password)
         )
 
@@ -102,14 +158,42 @@ ll        email = request.form["email"]
         conn.close()
 
         if user:
-            if user[4] == "student":
-                return redirect(url_for("student_dashboard"))
+
+            role = user[4]
+
+            if role == "student":
+                return redirect("/student_dashboard")
+
             else:
-                return redirect(url_for("teacher_dashboard"))
+                return redirect("/teacher_dashboard")
 
-        return "Invalid Login Details"
+        else:
+            return "Invalid login details."
 
-    return render_template("login.html")
+    return render_template_string("""
+    <html>
+    <head>
+        <title>Login</title>
+    </head>
+    <body style="font-family: Arial; padding: 40px;">
+
+        <h2>Login</h2>
+
+        <form method="POST">
+
+            <input type="email" name="email" placeholder="Email" required>
+            <br><br>
+
+            <input type="password" name="password" placeholder="Password" required>
+            <br><br>
+
+            <button type="submit">Login</button>
+
+        </form>
+
+    </body>
+    </html>
+    """)
 
 # =========================
 # STUDENT DASHBOARD
@@ -117,7 +201,26 @@ ll        email = request.form["email"]
 
 @app.route("/student_dashboard")
 def student_dashboard():
-    return render_template("student_dashboard.html")
+
+    return render_template_string("""
+    <html>
+    <head>
+        <title>Student Dashboard</title>
+    </head>
+    <body style="font-family: Arial; padding: 40px;">
+
+        <h1>Student Dashboard</h1>
+
+        <ul>
+            <li>Homework</li>
+            <li>Exam Results</li>
+            <li>Timetable</li>
+            <li>Attendance</li>
+        </ul>
+
+    </body>
+    </html>
+    """)
 
 # =========================
 # TEACHER DASHBOARD
@@ -125,43 +228,31 @@ def student_dashboard():
 
 @app.route("/teacher_dashboard")
 def teacher_dashboard():
-    return render_template("teacher_dashboard.html")
 
-# =========================
-# HOMEWORK UPLOAD
-# =========================
+    return render_template_string("""
+    <html>
+    <head>
+        <title>Teacher Dashboard</title>
+    </head>
+    <body style="font-family: Arial; padding: 40px;">
 
-UPLOAD_FOLDER = "uploads"
+        <h1>Teacher Dashboard</h1>
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+        <ul>
+            <li>Upload Homework</li>
+            <li>Manage Students</li>
+            <li>Upload Results</li>
+            <li>Create Timetable</li>
+        </ul>
 
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-@app.route("/homework", methods=["GET", "POST"])
-def homework():
-    if request.method == "POST":
-
-        subject = request.form["subject"]
-        file = request.files["homework"]
-
-        if file:
-            filename = secure_filename(file.filename)
-
-            file.save(
-                os.path.join(
-                    app.config["UPLOAD_FOLDER"],
-                    filename
-                )
-            )
-
-            return f"Homework uploaded successfully for {subject}"
-
-    return render_template("homework.html")
+    </body>
+    </html>
+    """)
 
 # =========================
 # RUN APP
 # =========================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
