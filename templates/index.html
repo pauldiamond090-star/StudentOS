@@ -1,163 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <title>Touchwood Login</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudentOS</title>
 
     <style>
+
         body{
             margin:0;
             padding:0;
-            font-family:Arial, sans-serif;
-            background:#f4f7fc;
+            font-family:Arial;
+            background:#fff5f5;
         }
 
-        .navbar{
-            background:#1e3a8a;
-            color:white;
-            padding:15px 30px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-        }
-
-        .navbar h2{
-            margin:0;
-        }
-
-        .nav-links a{
-            color:white;
-            text-decoration:none;
-            margin-left:20px;
-            font-weight:bold;
-        }
-
-        .hero{
-            text-align:center;
-            padding:100px 20px;
-        }
-
-        .hero h1{
-            font-size:50px;
-            color:#1e3a8a;
-        }
-
-        .hero p{
-            font-size:20px;
-            color:#555;
-            max-width:700px;
+        .container{
+            width:90%;
             margin:auto;
+            text-align:center;
+            padding-top:50px;
         }
 
-        .buttons{
-            margin-top:30px;
-        }
-
-        .buttons a{
-            text-decoration:none;
-            padding:15px 30px;
-            margin:10px;
-            border-radius:8px;
-            font-size:18px;
+        .logo{
+            color:#cc0000;
+            font-size:50px;
             font-weight:bold;
+            margin-bottom:20px;
         }
 
-        .login-btn{
-            background:#1e3a8a;
-            color:white;
+        img{
+            width:100%;
+            border-radius:20px;
         }
 
-        .register-btn{
-            background:#10b981;
-            color:white;
-        }
-
-        .features{
-            padding:50px 20px;
-            background:white;
-            text-align:center;
-        }
-
-        .features h2{
-            color:#1e3a8a;
-        }
-
-        .feature-box{
-            display:inline-block;
-            width:250px;
-            background:#f9fafb;
-            margin:15px;
-            padding:20px;
-            border-radius:10px;
-            box-shadow:0 0 10px rgba(0,0,0,0.1);
-        }
-
-        footer{
-            background:#1e3a8a;
-            color:white;
-            text-align:center;
-            padding:20px;
+        h1{
+            font-size:45px;
             margin-top:40px;
         }
+
+        input{
+            width:100%;
+            padding:20px;
+            margin-top:20px;
+            border-radius:15px;
+            border:2px solid #ddd;
+            font-size:20px;
+        }
+
+        .btn{
+            width:100%;
+            padding:20px;
+            margin-top:25px;
+            border:none;
+            border-radius:15px;
+            background:#cc0000;
+            color:white;
+            font-size:25px;
+            font-weight:bold;
+        }
+
+        .register{
+            margin-top:30px;
+            font-size:22px;
+        }
+
+        a{
+            color:#cc0000;
+            text-decoration:none;
+            font-weight:bold;
+        }
+
     </style>
 </head>
+
 <body>
 
-<div class="navbar">
-    <h2>🎓 StudentOS</h2>
+<div class="container">
 
-    <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/login">Login</a>
-        <a href="/register">Register</a>
-    </div>
-</div>
+    <div class="logo">Touchwood</div>
 
-<div class="hero">
-    <h1>Welcome to StudentOS</h1>
+    <h1>Login</h1>
 
-    <p>
-        The complete AI-powered school management platform
-        for primary schools, secondary schools, universities,
-        WAEC, JAMB, CBT exams, homework help, and online learning.
-    </p>
+    <form method="POST">
 
-    <div class="buttons">
-        <a href="/login" class="login-btn">Login</a>
-        <a href="/register" class="register-btn">Get Started</a>
-    </div>
-</div>
+        <input type="email" name="email" placeholder="Email">
 
-<div class="features">
+        <input type="password" name="password" placeholder="Password">
 
-    <h2>Platform Features</h2>
+        <button class="btn">Login</button>
 
-    <div class="feature-box">
-        <h3>📚 Homework Help</h3>
-        <p>AI-powered explanations for all subjects and topics.</p>
-    </div>
+    </form>
 
-    <div class="feature-box">
-        <h3>📝 CBT Exams</h3>
-        <p>Practice WAEC, JAMB, NECO, and Post-UTME tests online.</p>
-    </div>
-
-    <div class="feature-box">
-        <h3>👨‍🏫 Teacher Dashboard</h3>
-        <p>Manage classes, assignments, attendance, and results.</p>
-    </div>
-
-    <div class="feature-box">
-        <h3>🎓 Student Portal</h3>
-        <p>Access lessons, results, timetable, and course materials.</p>
+    <div class="register">
+        Don't have an account?
+        <a href="/register">Create Account</a>
     </div>
 
 </div>
-
-<footer>
-    <p>© 2026 StudentOS - AI School Management Platform</p>
-</footer>
 
 </body>
 </html>
