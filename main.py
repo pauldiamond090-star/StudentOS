@@ -48,18 +48,35 @@ def register():
         password = request.form["password"]
         role = request.form["role"]
 
-        conn = sqlite3.connect("studentos.db")
-        cursor = conn.cursor()
+        try:
+            conn = sqlite3.connect("studentos.db")
+            cursor = conn.cursor()
 
-        cursor.execute(
-            "INSERT INTO users (fullname, email, password, role) VALUES (?, ?, ?, ?)",
-            (fullname, email, password, role)
-        )
+            # Check if email already exists
+            cursor.execute(
+                "SELECT * FROM users WHERE email = ?",
+                (email,)
+            )
 
-        conn.commit()
-        conn.close()
+            existing_user = cursor.fetchone()
 
-        return redirect(url_for("login"))
+            if existing_user:
+                conn.close()
+                return "Email already registered. Try another email."
+
+            # Insert new user
+            cursor.execute(
+                "INSERT INTO users (fullname, email, password, role) VALUES (?, ?, ?, ?)",
+                (fullname, email, password, role)
+            )
+
+            conn.commit()
+            conn.close()
+
+            return "Registration successful!"
+
+        except Exception as e:
+            return f"Error: {str(e)}"
 
     return render_template("register.html")
 
@@ -69,8 +86,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == "POST":
-        email = request.form["email"]
+ll        email = request.form["email"]
         password = request.form["password"]
 
         conn = sqlite3.connect("studentos.db")
