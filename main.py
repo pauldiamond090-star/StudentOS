@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 import sqlite3
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -125,10 +127,40 @@ def student_dashboard():
 @app.route("/teacher_dashboard")
 def teacher_dashboard():
     return render_template("teacher_dashboard.html")
+# =========================
+# HOMEWORK UPLOAD
+# =========================
 
+UPLOAD_FOLDER = "uploads"
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+@app.route("/homework", methods=["GET", "POST"])
+def homework():
+
+    if request.method == "POST":
+
+        subject = request.form["subject"]
+
+        file = request.files["homework"]
+
+        if file:
+
+            filename = secure_filename(file.filename)
+
+            file.save(
+                os.path.join(
+                    app.config["UPLOAD_FOLDER"],
+                    filename
+                )
+            )
+
+            return f"Homework uploaded successfully for {subject}"
+
+    return render_template("homework.html")
 # =========================
 # RUN APP
 # =========================
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+app.run(host="0.0.0.0", port=5000)
