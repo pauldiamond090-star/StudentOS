@@ -1,65 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>StudentOS Register</title>
+    <title>Register</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
 
         body{
-            font-family: Arial;
-            background:#0f172a;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
             margin:0;
+            padding:0;
+            background:#f4f4f4;
+            font-family:Arial;
         }
 
         .container{
-            background:white;
             width:90%;
-            max-width:400px;
-            padding:30px;
-            border-radius:20px;
-            text-align:center;
-            box-shadow:0px 0px 20px rgba(0,0,0,0.4);
+            margin:auto;
+            padding-top:30px;
         }
 
         h1{
-            color:#1e3a8a;
-            font-size:38px;
-            margin-bottom:20px;
+            text-align:center;
+            color:#0033cc;
+            font-size:60px;
             font-weight:bold;
+            margin-bottom:40px;
         }
 
         input, select{
             width:100%;
-            padding:15px;
-            margin-top:10px;
-            margin-bottom:20px;
-            border-radius:10px;
-            border:1px solid #ccc;
-            font-size:16px;
+            padding:25px;
+            margin-top:25px;
+            border-radius:20px;
+            border:2px solid #ccc;
+            font-size:24px;
         }
 
-        button{
-            width:100%;
-            padding:15px;
-            background:#2563eb;
-            color:white;
-            border:none;
-            border-radius:10px;
-            font-size:20px;
+        label{
+            font-size:24px;
             font-weight:bold;
         }
 
-        button:hover{
-            background:#1d4ed8;
+        .btn{
+            width:100%;
+            padding:25px;
+            margin-top:40px;
+            background:#0055ff;
+            color:white;
+            border:none;
+            border-radius:20px;
+            font-size:30px;
+            font-weight:bold;
         }
 
         .show{
-            text-align:left;
-            margin-bottom:20px;
+            margin-top:20px;
+            font-size:24px;
         }
 
     </style>
@@ -70,46 +67,40 @@
 
 <div class="container">
 
-<h1>StudentOS Registration</h1>
+    <h1>Touchwood Registration</h1>
 
-<form method="POST">
+    <form method="POST">
 
-<input type="text"
-name="fullname"
-placeholder="Full Name"
-required>
+        <input type="text" name="fullname" placeholder="Full Name" required>
 
-<input type="email"
-name="email"
-placeholder="Email"
-required>
+        <input type="email" name="email" placeholder="Email" required>
 
-<input type="password"
-id="password"
-name="password"
-placeholder="Password"
-required
-minlength="8"
-pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$"
-title="Password must contain letters and numbers">
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Password"
+            pattern="(?=.*[A-Za-z].*[A-Za-z].*[A-Za-z])(?=.*[0-9]).{8,}"
+            title="Password must contain at least 8 characters, 3 letters and 1 number"
+            required
+        >
 
-<div class="show">
-<input type="checkbox" onclick="showPassword()"> Show Password
-</div>
+        <div class="show">
+            <input type="checkbox" onclick="showPassword()">
+            Show Password
+        </div>
 
-<select name="role">
+        <select name="role">
 
-<option value="student">Student</option>
+            <option>Student</option>
 
-<option value="teacher">Teacher</option>
+            <option>Teacher</option>
 
-</select>
+        </select>
 
-<button type="submit">
-Register
-</button>
+        <button class="btn">Register</button>
 
-</form>
+    </form>
 
 </div>
 
@@ -121,7 +112,7 @@ function showPassword(){
 
     if(x.type === "password"){
         x.type = "text";
-    } else {
+    }else{
         x.type = "password";
     }
 
