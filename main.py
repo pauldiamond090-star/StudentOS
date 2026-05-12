@@ -6,16 +6,6 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 
 # =========================
-# CONFIG
-# =========================
-
-UPLOAD_FOLDER = "uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-# Create uploads folder if it doesn't exist
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-# =========================
 # DATABASE SETUP
 # =========================
 
@@ -52,9 +42,7 @@ def home():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-
     if request.method == "POST":
-
         fullname = request.form["fullname"]
         email = request.form["email"]
         password = request.form["password"]
@@ -81,9 +69,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-
     if request.method == "POST":
-
         email = request.form["email"]
         password = request.form["password"]
 
@@ -100,17 +86,12 @@ def login():
         conn.close()
 
         if user:
-
-            role = user[4]
-
-            if role == "student":
+            if user[4] == "student":
                 return redirect(url_for("student_dashboard"))
-
-            elif role == "teacher":
+            else:
                 return redirect(url_for("teacher_dashboard"))
 
-        else:
-            return "Invalid login details"
+        return "Invalid Login Details"
 
     return render_template("login.html")
 
@@ -134,17 +115,21 @@ def teacher_dashboard():
 # HOMEWORK UPLOAD
 # =========================
 
+UPLOAD_FOLDER = "uploads"
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 @app.route("/homework", methods=["GET", "POST"])
 def homework():
-
     if request.method == "POST":
 
         subject = request.form["subject"]
-
         file = request.files["homework"]
 
         if file:
-
             filename = secure_filename(file.filename)
 
             file.save(
