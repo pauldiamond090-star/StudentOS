@@ -1,97 +1,125 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Student Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentOS Dashboard</title>
 
     <style>
-        body{
-            font-family: Arial;
-            background:#f5f7fb;
+
+        *{
             margin:0;
             padding:0;
+            box-sizing:border-box;
+            font-family:Arial;
         }
 
-        .navbar{
-            background:#1e3a8a;
+        body{
+            background:#0f172a;
             color:white;
-            padding:15px;
-            font-size:22px;
-            font-weight:bold;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            min-height:100vh;
+            padding:20px;
         }
 
-        .container{
-            padding:20px;
+        .dashboard{
+            width:100%;
+            max-width:900px;
+            text-align:center;
+        }
+
+        .title{
+            font-size:50px;
+            font-weight:bold;
+            margin-bottom:10px;
         }
 
         .welcome{
-            background:white;
-            padding:20px;
-            border-radius:10px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom:20px;
+            font-size:22px;
+            margin-bottom:40px;
+            color:#cbd5e1;
         }
 
         .grid{
             display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-            gap:20px;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:25px;
         }
 
         .card{
-            background:white;
-            padding:25px;
-            border-radius:12px;
-            text-align:center;
-            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            background:#1e293b;
+            padding:40px 20px;
+            border-radius:20px;
             transition:0.3s;
+            box-shadow:0 8px 20px rgba(0,0,0,0.3);
         }
 
         .card:hover{
-            transform:translateY(-5px);
+            transform:translateY(-8px);
+            background:#2563eb;
+        }
+
+        .card h2{
+            font-size:28px;
+            margin-bottom:15px;
+        }
+
+        .card p{
+            font-size:16px;
+            color:#e2e8f0;
         }
 
         a{
             text-decoration:none;
-            color:#1e3a8a;
-            font-weight:bold;
+            color:white;
         }
+
     </style>
 </head>
 
 <body>
 
-    <div class="navbar">
-        StudentOS Dashboard
-    </div>
+    <div class="dashboard">
 
-    <div class="container">
+        <div class="title">
+            StudentOS
+        </div>
 
         <div class="welcome">
-            <h2>Welcome {{ username }}</h2>
-            <p>Your school portal is active.</p>
+            Welcome {{ username }}
         </div>
 
         <div class="grid">
 
-            <div class="card">
-                <h3>Homework</h3>
-                <a href="/homework">Open</a>
-            </div>
+            <a href="#">
+                <div class="card">
+                    <h2>📚 Homework</h2>
+                    <p>View assignments</p>
+                </div>
+            </a>
 
-            <div class="card">
-                <h3>Timetable</h3>
-                <a href="/timetable">Open</a>
-            </div>
+            <a href="#">
+                <div class="card">
+                    <h2>🕒 Timetable</h2>
+                    <p>Check class schedule</p>
+                </div>
+            </a>
 
-            <div class="card">
-                <h3>Results</h3>
-                <a href="/results">Open</a>
-            </div>
+            <a href="#">
+                <div class="card">
+                    <h2>📊 Results</h2>
+                    <p>View exam scores</p>
+                </div>
+            </a>
 
-            <div class="card">
-                <h3>Chat</h3>
-                <a href="/chat">Open</a>
-            </div>
+            <a href="#">
+                <div class="card">
+                    <h2>💬 Chat</h2>
+                    <p>Talk with teachers</p>
+                </div>
+            </a>
 
         </div>
 
