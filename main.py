@@ -1,213 +1,166 @@
-from fastapi import FastAPI, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 import json
 import os
 
-app = FastAPI(title="StudentOS")
+app = Flask(__name__)
+app.secret_key = "edunova_super_secret_key_2026"
 
+# =========================
+# USERS FILE (JSON DB)
+# =========================
 USERS_FILE = "users.json"
 
-# CREATE FILE IF MISSING
-if not os.path.exists(USERS_FILE):
-    with open(USERS_FILE, "w") as f:
-        json.dump([], f)
 
+# =========================
 # LOAD USERS
+# =========================
 def load_users():
+    if not os.path.exists(USERS_FILE):
+        return {}
     with open(USERS_FILE, "r") as f:
         return json.load(f)
 
+
+# =========================
 # SAVE USERS
+# =========================
 def save_users(users):
     with open(USERS_FILE, "w") as f:
         json.dump(users, f, indent=4)
 
-# LOGIN PAGE
-@app.get("/", response_class=HTMLResponse)
+
+# =========================
+# HOME (SPLASH OR LOGIN)
+# =========================
+@app.route("/")
 def home():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>StudentOS Login</title>
-    </head>
-    <body>
+    return redirect(url_for("login"))
 
-    <h1>StudentOS Login</h1>
 
-    <form action="/login" method="post">
-
-        <input type="text"
-               name="username"
-               placeholder="Username"
-               required>
-
-        <br><br>
-
-        <input type="password"
-               name="password"
-               placeholder="Password"
-               required>
-
-        <br><br>
-
-        <button type="submit">
-            Login
-        </button>
-
-    </form>
-
-    <br>
-
-    <a href="/register">
-        Create Account
-    </a>
-
-    </body>
-    </html>
-    """
-
-# REGISTER PAGE
-@app.get("/register", response_class=HTMLResponse)
-def register_page():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Register</title>
-    </head>
-    <body>
-
-    <h1>Create Account</h1>
-
-    <form action="/register" method="post">
-
-        <input type="text"
-               name="username"
-               placeholder="Username"
-               required>
-
-        <br><br>
-
-        <input type="password"
-               name="password"
-               placeholder="Password"
-               required>
-
-        <br><br>
-
-        <select name="role">
-            <option value="student">Student</option>
-            <option value="teacher">Teacher</option>
-            <option value="admin">Admin</option>
-        </select>
-
-        <br><br>
-
-        <button type="submit">
-            Register
-        </button>
-
-    </form>
-
-    </body>
-    </html>
-    """
-
-# REGISTER USER
-@app.post("/register")
-def register(
-    username: str = Form(...),
-    password: str = Form(...),
-    role: str = Form(...)
-):
+# =========================
+# LOGIN
+# =========================
+@app.route("/login", methods=["GET", "POST"])
+def login():
     users = load_users()
 
-    # CHECK IF USER EXISTS
-    for user in users:
-        if user["username"] == username:
-            return HTMLResponse("""
-            <h1>Username already exists</h1>
-            <a href="/register">Try Again</a>
-            """)
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
 
-    # SAVE USER
-    users.append({
-        "username": username,
-        "password": password,
-        "role": role
-    })
+        if username in users and check_password_hash(users[username]["password"], password):
+            session["user"] = username
+            session["role"] = users[username]["role"]
 
-    save_users(users)
+            flash("Login successful!", "success")
 
-    return RedirectResponse(
-        url="/",
-        status_code=303
-    )
-
-# LOGIN USER
-@app.post("/login")
-def login(
-    username: str = Form(...),
-    password: str = Form(...)
-):
-    users = load_users()
-
-    for user in users:
-
-        if (
-            user["username"] == username
-            and
-            user["password"] == password
-        ):
-
-            # REDIRECT BY ROLE
-            if user["role"] == "teacher":
-                return RedirectResponse(
-                    url=f"/teacher/{username}",
-                    status_code=303
-                )
-
-            elif user["role"] == "admin":
-                return RedirectResponse(
-                    url=f"/admin/{username}",
-                    status_code=303
-                )
-
+            if users[username]["role"] == "student":
+                return redirect(url_for("student_dashboard"))
             else:
-                return RedirectResponse(
-                    url=f"/student/{username}",
-                    status_code=303
-                )
+                return redirect(url_for("teacher_dashboard"))
 
-    return HTMLResponse("""
-    <h1>Invalid username or password</h1>
-    <a href="/">Try Again</a>
-    """)
+        flash("Invalid username or password", "error")
 
+    return render_template("login.html")
+
+
+# =========================
+# REGISTER
+# =========================
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    users = load_users()
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        role = request.form["role"]
+
+        if username in users:
+            flash("User already exists!", "error")
+            return redirect(url_for("register"))
+
+        # Strong password hashing
+        users[username] = {
+            "password": generate_password_hash(password),
+            "role": role
+        }
+
+        save_users(users)
+
+        flash("Account created successfully!", "success")
+        return redirect(url_for("login"))
+
+    return render_template("register.html")
+
+
+# =========================
 # STUDENT DASHBOARD
-@app.get("/student/{username}", response_class=HTMLResponse)
-def student_dashboard(username: str):
-    return f"""
-    <h1>Student Dashboard</h1>
+# =========================
+@app.route("/student/dashboard")
+def student_dashboard():
+    if "user" not in session or session.get("role") != "student":
+        return redirect(url_for("login"))
 
-    <p>Welcome {username}</p>
-    """
+    return render_template("student_dashboard.html", user=session["user"])
 
+
+# =========================
 # TEACHER DASHBOARD
-@app.get("/teacher/{username}", response_class=HTMLResponse)
-def teacher_dashboard(username: str):
-    return f"""
-    <h1>Teacher Dashboard</h1>
+# =========================
+@app.route("/teacher/dashboard")
+def teacher_dashboard():
+    if "user" not in session or session.get("role") != "teacher":
+        return redirect(url_for("login"))
 
-    <p>Welcome {username}</p>
-    """
+    return render_template("teacher_dashboard.html", user=session["user"])
 
-# ADMIN DASHBOARD
-@app.get("/admin/{username}", response_class=HTMLResponse)
-def admin_dashboard(username: str):
-    return f"""
-    <h1>Admin Dashboard</h1>
 
-    <p>Welcome {username}</p>
-    """
+# =========================
+# HOMEWORK PAGE
+# =========================
+@app.route("/homework")
+def homework():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("homework.html")
+
+
+# =========================
+# TIMETABLE
+# =========================
+@app.route("/timetable")
+def timetable():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("timetable.html")
+
+
+# =========================
+# CHAT
+# =========================
+@app.route("/chat")
+def chat():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("chat.html")
+
+
+# =========================
+# LOGOUT
+# =========================
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+# =========================
+# RUN APP
+# =========================
+if __name__ == "__main__":
+    app.run(debug=True)
