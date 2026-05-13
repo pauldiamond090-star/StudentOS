@@ -1,41 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Register</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNova - Create Account</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a, #2563eb);
+        }
+
+        .container {
+            width: 900px;
+            max-width: 95%;
+            display: flex;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        /* LEFT SIDE */
+        .left {
+            flex: 1;
+            padding: 50px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .left h1 {
+            font-size: 50px;
+            font-weight: 700;
+        }
+
+        .left h2 {
+            font-size: 18px;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .left p {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.7;
+            line-height: 1.6;
+        }
+
+        /* RIGHT SIDE */
+        .right {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card h2 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        .flash {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #ffb4b4;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #22c55e;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #16a34a;
+            transform: scale(1.02);
+        }
+
+        .links {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 13px;
+            color: white;
+        }
+
+        .links a {
+            color: #facc15;
+            text-decoration: none;
+        }
+
+        @media(max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .left {
+                text-align: center;
+            }
+        }
+
+    </style>
 </head>
+
 <body>
 
-<h1>Create Account</h1>
+<div class="container">
 
-<form action="/register" method="post">
+    <!-- LEFT SIDE -->
+    <div class="left">
+        <h1>EduNova</h1>
+        <h2>Smart Learning, Simplified</h2>
 
-    <input type="text"
-           name="username"
-           placeholder="Username"
-           required>
+        <p>
+            Create your EduNova account to access your school dashboard,
+            manage learning materials, connect with teachers, and stay organized.
+        </p>
+    </div>
 
-    <br><br>
+    <!-- RIGHT SIDE -->
+    <div class="right">
 
-    <input type="password"
-           name="password"
-           placeholder="Password"
-           required>
+        <div class="card">
 
-    <br><br>
+            <h2>Create Account</h2>
 
-    <select name="role">
-        <option value="student">Student</option>
-        <option value="teacher">Teacher</option>
-        <option value="admin">Admin</option>
-    </select>
+            <!-- FLASH MESSAGES -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash">
+                        {% for msg in messages %}
+                            <p>{{ msg }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-    <br><br>
+            <!-- REGISTER FORM -->
+            <form action="/register" method="POST">
 
-    <button type="submit">
-        Register
-    </button>
+                <input type="text" name="username" placeholder="Choose Username" required>
 
-</form>
+                <input type="password" name="password" placeholder="Create Password" required>
+
+                <!-- ROLE SELECTION -->
+                <select name="role" required>
+                    <option value="">Select Role</option>
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                </select>
+
+                <button type="submit">Create EduNova Account</button>
+
+            </form>
+
+            <div class="links">
+                Already have an account? <a href="/login">Login here</a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
-</html>
+    </html>
