@@ -2,123 +2,56 @@
 <html>
 <head>
     <title>Register</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <style>
-
-        body{
-            margin:0;
-            padding:0;
-            background:#f4f4f4;
-            font-family:Arial;
-        }
-
-        .container{
-            width:90%;
-            margin:auto;
-            padding-top:30px;
-        }
-
-        h1{
-            text-align:center;
-            color:#0033cc;
-            font-size:60px;
-            font-weight:bold;
-            margin-bottom:40px;
-        }
-
-        input, select{
-            width:100%;
-            padding:25px;
-            margin-top:25px;
-            border-radius:20px;
-            border:2px solid #ccc;
-            font-size:24px;
-        }
-
-        label{
-            font-size:24px;
-            font-weight:bold;
-        }
-
-        .btn{
-            width:100%;
-            padding:25px;
-            margin-top:40px;
-            background:#0055ff;
-            color:white;
-            border:none;
-            border-radius:20px;
-            font-size:30px;
-            font-weight:bold;
-        }
-
-        .show{
-            margin-top:20px;
-            font-size:24px;
-        }
-
-    </style>
-
 </head>
-
 <body>
 
-<div class="container">
+<h1>Create Account</h1>
 
-    <h1>Touchwood Registration</h1>
+<form action="/register" method="post">
 
-    <form method="POST">
+    <input type="text"
+           name="username"
+           placeholder="Username"
+           required>
 
-        <input type="text" name="fullname" placeholder="Full Name" required>
+    <br><br>
 
-        <input type="email" name="email" placeholder="Email" required>
+    <input type="password"
+           name="password"
+           placeholder="Password"
+           required>
 
-        <input
-            type="password"
-            id="password"
-            name="password"
-            placeholder="Password"
-            pattern="(?=.*[A-Za-z].*[A-Za-z].*[A-Za-z])(?=.*[0-9]).{8,}"
-            title="Password must contain at least 8 characters, 3 letters and 1 number"
-            required
-        >
+    <br><br>
 
-        <div class="show">
-            <input type="checkbox" onclick="showPassword()">
-            Show Password
-        </div>
+    <select name="role">
 
-        <select name="role">
+        <option value="student">
+            Student
+        </option>
 
-            <option>Student</option>
+        <option value="teacher">
+            Teacher
+        </option>
 
-            <option>Teacher</option>
+        <option value="admin">
+            Admin
+        </option>
 
-        </select>
+    </select>
 
-        <button class="btn">Register</button>
+    <br><br>
 
-    </form>
+    <button type="submit">
+        Register
+    </button>
 
-</div>
+</form>
 
-<script>
+<br>
 
-function showPassword(){
-
-    var x = document.getElementById("password");
-
-    if(x.type === "password"){
-        x.type = "text";
-    }else{
-        x.type = "password";
-    }
-
-}
-
-</script>
+<a href="/">
+Back to Login
+</a>
 
 </body>
 </html>
