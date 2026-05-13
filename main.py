@@ -1,19 +1,34 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-import os
 
 app = FastAPI(title="StudentOS")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-templates = Jinja2Templates(
-    directory=os.path.join(BASE_DIR, "templates")
-)
-
 @app.get("/", response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request}
-    )
+def home():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>StudentOS Login</title>
+    </head>
+    <body>
+
+    <h1>StudentOS Login</h1>
+
+    <form>
+        <input type="text" placeholder="Username">
+
+        <br><br>
+
+        <input type="password" placeholder="Password">
+
+        <br><br>
+
+        <button type="submit">
+            Login
+        </button>
+    </form>
+
+    </body>
+    </html>
+    """
