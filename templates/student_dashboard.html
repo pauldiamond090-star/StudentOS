@@ -1,108 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>StudentOS Dashboard</title>
-
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Dashboard</title>
 
     <style>
-
         body{
+            font-family: Arial;
+            background:#f5f7fb;
             margin:0;
-            font-family:Arial;
-            background:#f4f6f9;
+            padding:0;
         }
 
-        .header{
-            background:#0d47a1;
+        .navbar{
+            background:#1e3a8a;
             color:white;
-            padding:20px;
-            text-align:center;
-            font-size:28px;
+            padding:15px;
+            font-size:22px;
             font-weight:bold;
         }
 
-        .welcome{
+        .container{
             padding:20px;
-            font-size:20px;
+        }
+
+        .welcome{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom:20px;
         }
 
         .grid{
             display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-            gap:15px;
-            padding:20px;
+            grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+            gap:20px;
         }
 
         .card{
             background:white;
-            border-radius:15px;
             padding:25px;
+            border-radius:12px;
             text-align:center;
-            box-shadow:0 2px 10px rgba(0,0,0,0.1);
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
             transition:0.3s;
         }
 
         .card:hover{
-            transform:scale(1.03);
+            transform:translateY(-5px);
         }
 
-        .card a{
+        a{
             text-decoration:none;
-            color:#0d47a1;
-            font-size:18px;
+            color:#1e3a8a;
             font-weight:bold;
         }
-
     </style>
-
 </head>
 
 <body>
 
-    <div class="header">
-        StudentOS
+    <div class="navbar">
+        StudentOS Dashboard
     </div>
 
-    <div class="welcome">
-        Welcome {{ username }}
-    </div>
+    <div class="container">
 
-    <div class="grid">
-
-        <div class="card">
-            <a href="#">📚 Homework</a>
+        <div class="welcome">
+            <h2>Welcome {{ username }}</h2>
+            <p>Your school portal is active.</p>
         </div>
 
-        <div class="card">
-            <a href="#">📅 Timetable</a>
-        </div>
+        <div class="grid">
 
-        <div class="card">
-            <a href="#">📝 WAEC</a>
-        </div>
+            <div class="card">
+                <h3>Homework</h3>
+                <a href="/homework">Open</a>
+            </div>
 
-        <div class="card">
-            <a href="#">🎓 JAMB</a>
-        </div>
+            <div class="card">
+                <h3>Timetable</h3>
+                <a href="/timetable">Open</a>
+            </div>
 
-        <div class="card">
-            <a href="#">💬 Chat</a>
-        </div>
+            <div class="card">
+                <h3>Results</h3>
+                <a href="/results">Open</a>
+            </div>
 
-        <div class="card">
-            <a href="#">📊 Results</a>
-        </div>
+            <div class="card">
+                <h3>Chat</h3>
+                <a href="/chat">Open</a>
+            </div>
 
-        <div class="card">
-            <a href="#">🏫 Universities</a>
-        </div>
-
-        <div class="card">
-            <a href="#">👨‍🏫 Teachers</a>
         </div>
 
     </div>
 
 </body>
-    </html>
+</html>
