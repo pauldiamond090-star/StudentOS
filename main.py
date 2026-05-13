@@ -8,12 +8,19 @@ from database import SessionLocal, engine
 from models import Base, User
 from auth import hash_password, verify_password
 
+import os
+
 app = FastAPI(title="StudentOS")
 
-# Create database tables
+# CREATE DATABASE TABLES
 Base.metadata.create_all(bind=engine)
 
-templates = Jinja2Templates(directory="templates")
+# FIX TEMPLATE PATH
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+templates = Jinja2Templates(
+    directory=os.path.join(BASE_DIR, "templates")
+)
 
 # DATABASE SESSION
 def get_db():
