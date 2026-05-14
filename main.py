@@ -10,12 +10,10 @@ app = Flask(__name__)
 # ==========================================
 app.secret_key = "nexora_ultra_secure_key_2026"
 
-
 # ==========================================
-# USERS DATABASE FILE
+# DATABASE FILE
 # ==========================================
 USERS_FILE = "users.json"
-
 
 # ==========================================
 # LOAD USERS
@@ -23,10 +21,22 @@ USERS_FILE = "users.json"
 def load_users():
 
     if not os.path.exists(USERS_FILE):
-        return {}
+
+        with open(USERS_FILE, "w") as f:
+            json.dump({}, f)
 
     with open(USERS_FILE, "r") as f:
-        return json.load(f)
+
+        try:
+            data = json.load(f)
+
+            if isinstance(data, list):
+                return {}
+
+            return data
+
+        except:
+            return {}
 
 
 # ==========================================
@@ -39,7 +49,7 @@ def save_users(users):
 
 
 # ==========================================
-# HOME / SPLASH
+# SPLASH SCREEN
 # ==========================================
 @app.route("/")
 def splash():
@@ -57,7 +67,7 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form["username"]
+        username = request.form["username"].strip().lower()
         password = request.form["password"]
 
         if username in users:
@@ -73,11 +83,24 @@ def login():
 
                 # STUDENT
                 if users[username]["role"] == "student":
-                    return redirect(url_for("student_dashboard"))
+
+                    return redirect(
+                        url_for("student_dashboard")
+                    )
 
                 # TEACHER
                 elif users[username]["role"] == "teacher":
-                    return redirect(url_for("teacher_dashboard"))
+
+                    return redirect(
+                        url_for("teacher_dashboard")
+                    )
+
+                # ADMIN
+                elif users[username]["role"] == "admin":
+
+                    return redirect(
+                        url_for("admin_dashboard")
+                    )
 
         flash("Invalid username or password", "error")
 
@@ -94,17 +117,32 @@ def register():
 
     if request.method == "POST":
 
-        username = request.form["username"]
+        username = request.form["username"].strip().lower()
         password = request.form["password"]
         role = request.form["role"]
 
-        # USER EXISTS
+        # CHECK USER EXISTS
         if username in users:
 
             flash("User already exists!", "error")
-            return redirect(url_for("register"))
 
-        # CREATE USER
+            return redirect(
+                url_for("register")
+            )
+
+        # PASSWORD VALIDATION
+        if len(password) < 6:
+
+            flash(
+                "Password must be at least 6 characters",
+                "error"
+            )
+
+            return redirect(
+                url_for("register")
+            )
+
+        # SAVE USER
         users[username] = {
             "password": generate_password_hash(password),
             "role": role
@@ -112,9 +150,14 @@ def register():
 
         save_users(users)
 
-        flash("Account created successfully!", "success")
+        flash(
+            "Account created successfully!",
+            "success"
+        )
 
-        return redirect(url_for("login"))
+        return redirect(
+            url_for("login")
+        )
 
     return render_template("register.html")
 
@@ -126,10 +169,16 @@ def register():
 def student_dashboard():
 
     if "user" not in session:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     if session["role"] != "student":
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     return render_template(
         "student_dashboard.html",
@@ -144,13 +193,43 @@ def student_dashboard():
 def teacher_dashboard():
 
     if "user" not in session:
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     if session["role"] != "teacher":
-        return redirect(url_for("login"))
+
+        return redirect(
+            url_for("login")
+        )
 
     return render_template(
         "teacher_dashboard.html",
+        user=session["user"]
+    )
+
+
+# ==========================================
+# ADMIN DASHBOARD
+# ==========================================
+@app.route("/admin/dashboard")
+def admin_dashboard():
+
+    if "user" not in session:
+
+        return redirect(
+            url_for("login")
+        )
+
+    if session["role"] != "admin":
+
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "admin_dashboard.html",
         user=session["user"]
     )
 
@@ -162,9 +241,14 @@ def teacher_dashboard():
 def homework():
 
     if "user" not in session:
-        return redirect(url_for("login"))
 
-    return render_template("homework.html")
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "homework.html"
+    )
 
 
 # ==========================================
@@ -174,9 +258,14 @@ def homework():
 def timetable():
 
     if "user" not in session:
-        return redirect(url_for("login"))
 
-    return render_template("timetable.html")
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "timetable.html"
+    )
 
 
 # ==========================================
@@ -186,9 +275,14 @@ def timetable():
 def chat():
 
     if "user" not in session:
-        return redirect(url_for("login"))
 
-    return render_template("chat.html")
+        return redirect(
+            url_for("login")
+        )
+
+    return render_template(
+        "chat.html"
+    )
 
 
 # ==========================================
@@ -199,9 +293,14 @@ def logout():
 
     session.clear()
 
-    flash("Logged out successfully", "success")
+    flash(
+        "Logged out successfully",
+        "success"
+    )
 
-    return redirect(url_for("login"))
+    return redirect(
+        url_for("login")
+    )
 
 
 # ==========================================
@@ -213,4 +312,4 @@ if __name__ == "__main__":
         debug=True,
         host="0.0.0.0",
         port=5000
-        )
+    )
