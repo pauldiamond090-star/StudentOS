@@ -1,52 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Welcome</title>
+
+    <title>Nexora</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body{
+
+        *{
             margin:0;
             padding:0;
+            box-sizing:border-box;
+            font-family:Arial;
+        }
+
+        body{
+            width:100%;
             height:100vh;
             display:flex;
             justify-content:center;
             align-items:center;
-            flex-direction:column;
-            background:linear-gradient(to bottom,#ff0000,#b30000);
-            font-family:Arial;
+            background:linear-gradient(
+                to bottom,
+                #2a0000,
+                #8b0000,
+                #ff2d2d
+            );
             overflow:hidden;
         }
 
-        h1{
-            color:white;
-            font-size:60px;
-            font-weight:bold;
-            text-shadow:3px 3px 10px rgba(0,0,0,0.5);
+        .container{
+            text-align:center;
+            animation:fadeIn 2s ease;
         }
 
-        p{
-            position:absolute;
-            bottom:30px;
+        .logo{
+            font-size:70px;
+            color:white;
+            font-weight:bold;
+            letter-spacing:3px;
+        }
+
+        .version{
+            color:white;
+            margin-top:15px;
+            font-size:22px;
+            opacity:0.8;
+        }
+
+        .loader{
+            width:70px;
+            height:70px;
+            border-radius:50%;
+            border:6px solid rgba(255,255,255,0.2);
+            border-top:6px solid white;
+            margin:40px auto;
+            animation:spin 1s linear infinite;
+        }
+
+        .subtitle{
             color:white;
             font-size:20px;
+            opacity:0.9;
         }
+
+        @keyframes spin{
+            100%{
+                transform:rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn{
+            from{
+                opacity:0;
+                transform:translateY(30px);
+            }
+
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
     </style>
 
     <script>
-        setTimeout(function(){
-            window.location.href="/";
-        },3000);
+
+        setTimeout(() => {
+
+            window.location.href="/login";
+
+        }, 5000);
+
     </script>
 
 </head>
 
 <body>
 
-    <h1>Touchwood</h1>
+    <div class="container">
 
-    <p>Version 1.0</p>
+        <div class="logo">
+            Nexora
+        </div>
+
+        <div class="version">
+            Version 8.1.0V
+        </div>
+
+        <div class="loader"></div>
+
+        <div class="subtitle">
+            Smart Learning Platform
+        </div>
+
+    </div>
 
 </body>
 </html>
