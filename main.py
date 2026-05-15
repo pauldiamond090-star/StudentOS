@@ -69,7 +69,7 @@ def login():
 
         username = request.form["username"].strip().lower()
         password = request.form["password"]
-
+                                 ["see password"]
         if username in users:
 
             stored_password = users[username]["password"]
@@ -134,7 +134,7 @@ def register():
         if len(password) < 6:
 
             flash(
-                "Password must be at least 6 characters",
+                "Password must be at least 6 characters number",
                 "error"
             )
 
@@ -234,20 +234,72 @@ def admin_dashboard():
     )
 
 
-# ==========================================
+# =========================
+# HOMEWORK FILE
+# =========================
+HOMEWORK_FILE = "data/homework.json"
+
+
+# =========================
+# LOAD HOMEWORK
+# =========================
+def load_homework():
+    if not os.path.exists(HOMEWORK_FILE):
+        return []
+
+    with open(HOMEWORK_FILE, "r") as f:
+        return json.load(f)
+
+
+# =========================
+# SAVE HOMEWORK
+# =========================
+def save_homework(homeworks):
+    with open(HOMEWORK_FILE, "w") as f:
+        json.dump(homeworks, f, indent=4)
+
+
+# =========================
 # HOMEWORK PAGE
-# ==========================================
-@app.route("/homework")
+# =========================
+@app.route("/homework", methods=["GET", "POST"])
 def homework():
 
     if "user" not in session:
+        return redirect(url_for("login"))
 
-        return redirect(
-            url_for("login")
-        )
+    homeworks = load_homework()
+
+    # TEACHER POSTS HOMEWORK
+    if request.method == "POST":
+
+        if session.get("role") != "teacher":
+            flash("Only teachers can upload homework")
+            return redirect(url_for("homework"))
+
+        title = request.form["title"]
+        subject = request.form["subject"]
+        description = request.form["description"]
+
+        new_homework = {
+            "title": title,
+            "subject": subject,
+            "description": description,
+            "teacher": session["user"]
+        }
+
+        homeworks.append(new_homework)
+
+        save_homework(homeworks)
+
+        flash("Homework uploaded successfully!")
+
+        return redirect(url_for("homework"))
 
     return render_template(
-        "homework.html"
+        "homework.html",
+        homeworks=homeworks,
+        role=session.get("role")
     )
 
 
