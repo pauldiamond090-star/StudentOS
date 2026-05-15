@@ -68,8 +68,7 @@ def login():
     if request.method == "POST":
 
         username = request.form["username"].strip().lower()
-        password = request.form["password"]
-                                 ["see password"]
+        password = request.form["password"] 
         if username in users:
 
             stored_password = users[username]["password"]
