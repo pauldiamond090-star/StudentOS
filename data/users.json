@@ -1,1 +1,8 @@
-{}
+[
+    {
+        "fullname": "Platform Admin",
+        "email": "admin@eduflow.com",
+        "password": "scrypt:32768:8:1$examplehashedpassword",
+        "role": "admin"
+    }
+]
