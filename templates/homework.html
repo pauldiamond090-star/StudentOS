@@ -1,80 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Homework Upload</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <style>
+<title>Homework</title>
 
-        body{
-            font-family:Arial;
-            background:#f2f2f2;
-            padding:30px;
-        }
+<style>
 
-        .box{
-            background:white;
-            padding:40px;
-            border-radius:20px;
-            max-width:500px;
-            margin:auto;
-            box-shadow:0 0 10px rgba(0,0,0,0.1);
-        }
+body{
+    background:#071739;
+    color:white;
+    font-family:Arial;
+    padding:20px;
+}
 
-        h1{
-            text-align:center;
-            color:#cc0000;
-            font-size:40px;
-        }
+h1{
+    margin-bottom:20px;
+}
 
-        input{
-            width:100%;
-            padding:15px;
-            margin-top:20px;
-            border-radius:10px;
-            border:1px solid #ccc;
-            font-size:18px;
-        }
+.card{
+    background:#13264d;
+    padding:20px;
+    border-radius:20px;
+    margin-bottom:20px;
+}
 
-        button{
-            width:100%;
-            padding:15px;
-            margin-top:20px;
-            background:#0033cc;
-            color:white;
-            border:none;
-            border-radius:10px;
-            font-size:20px;
-            font-weight:bold;
-        }
+input, textarea{
+    width:100%;
+    padding:15px;
+    margin-top:10px;
+    margin-bottom:15px;
+    border:none;
+    border-radius:12px;
+    background:#0d1b36;
+    color:white;
+}
 
-    </style>
+button{
+    background:#ff3b3b;
+    color:white;
+    border:none;
+    padding:15px;
+    width:100%;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+}
 
+.subject{
+    color:#8fb3ff;
+    margin-top:10px;
+}
+
+.teacher{
+    margin-top:15px;
+    color:gray;
+    font-size:14px;
+}
+
+</style>
 </head>
-
 <body>
 
-    <div class="box">
+<h1>📚 Homework</h1>
 
-        <h1>Upload Homework</h1>
+{% if role == "teacher" %}
 
-        <form method="POST" enctype="multipart/form-data">
+<div class="card">
 
-            <input type="text"
-                   name="subject"
-                   placeholder="Subject"
-                   required>
+<form method="POST">
 
-            <input type="file"
-                   name="homework"
-                   required>
+<input type="text"
+name="title"
+placeholder="Homework Title"
+required>
 
-            <button type="submit">
-                Upload Homework
-            </button>
+<input type="text"
+name="subject"
+placeholder="Subject"
+required>
 
-        </form>
+<textarea
+name="description"
+placeholder="Homework Description"
+rows="5"
+required></textarea>
 
-    </div>
+<button type="submit">
+Upload Homework
+</button>
+
+</form>
+
+</div>
+
+{% endif %}
+
+{% for hw in homeworks %}
+
+<div class="card">
+
+<h2>{{ hw.title }}</h2>
+
+<div class="subject">
+{{ hw.subject }}
+</div>
+
+<p>
+{{ hw.description }}
+</p>
+
+<div class="teacher">
+Uploaded by {{ hw.teacher }}
+</div>
+
+</div>
+
+{% endfor %}
 
 </body>
-      </html>
+    </html>
