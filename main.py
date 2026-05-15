@@ -1,18 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from authlib.integrations.flask_client import OAuth
-import json, os, uuid
+import json
+import os
+import uuid
 
 app = Flask(__name__)
-app.secret_key = "super_saas_secret_2026"
+app.secret_key = "edunova_super_saas_2026"
 
 # =========================
-# OAUTH GOOGLE
+# GOOGLE AUTH (OPTIONAL READY)
 # =========================
 oauth = OAuth(app)
 
-app.config["GOOGLE_CLIENT_ID"] = "YOUR_CLIENT_ID"
-app.config["GOOGLE_CLIENT_SECRET"] = "YOUR_CLIENT_SECRET"
+app.config["GOOGLE_CLIENT_ID"] = "YOUR_GOOGLE_CLIENT_ID"
+app.config["GOOGLE_CLIENT_SECRET"] = "YOUR_GOOGLE_CLIENT_SECRET"
 
 google = oauth.register(
     name="google",
@@ -25,35 +27,40 @@ google = oauth.register(
 )
 
 # =========================
-# DATA FILES
+# DATA FOLDER
 # =========================
-DATA = "data"
-os.makedirs(DATA, exist_ok=True)
+DATA_FOLDER = "data"
+os.makedirs(DATA_FOLDER, exist_ok=True)
 
-USERS_FILE = f"{DATA}/users.json"
-SCHOOLS_FILE = f"{DATA}/schools.json"
-HOMEWORK_FILE = f"{DATA}/homework.json"
-CBT_FILE = f"{DATA}/cbt.json"
-CHAT_FILE = f"{DATA}/chat.json"
+USERS_FILE = os.path.join(DATA_FOLDER, "users.json")
+SCHOOLS_FILE = os.path.join(DATA_FOLDER, "schools.json")
+HOMEWORK_FILE = os.path.join(DATA_FOLDER, "homework.json")
 
-for f in [USERS_FILE, SCHOOLS_FILE, HOMEWORK_FILE, CBT_FILE, CHAT_FILE]:
-    if not os.path.exists(f):
-        with open(f, "w") as x:
-            json.dump([], x)
 
 # =========================
-# HELPERS
+# INIT FILES
+# =========================
+def init_file(path, default):
+    if not os.path.exists(path):
+        with open(path, "w") as f:
+            json.dump(default, f, indent=4)
+
+init_file(USERS_FILE, [])
+init_file(SCHOOLS_FILE, [])
+init_file(HOMEWORK_FILE, [])
+
+
+# =========================
+# JSON HELPERS
 # =========================
 def load(file):
-    with open(file) as f:
+    with open(file, "r") as f:
         return json.load(f)
 
 def save(file, data):
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
-def current_school():
-    return session.get("school_id")
 
 # =========================
 # HOME
@@ -62,24 +69,6 @@ def current_school():
 def home():
     return redirect(url_for("login"))
 
-# =========================
-# REGISTER SCHOOL (MULTI-SCHOOL)
-# =========================
-@app.route("/create-school", methods=["POST"])
-def create_school():
-
-    schools = load(SCHOOLS_FILE)
-
-    school = {
-        "id": str(uuid.uuid4()),
-        "name": request.form.get("school_name"),
-        "owner": request.form.get("email")
-    }
-
-    schools.append(school)
-    save(SCHOOLS_FILE, schools)
-
-    return "School created"
 
 # =========================
 # REGISTER USER
@@ -91,7 +80,7 @@ def register():
 
     if request.method == "POST":
 
-        user = {
+        new_user = {
             "id": str(uuid.uuid4()),
             "fullname": request.form["fullname"],
             "email": request.form["email"],
@@ -100,12 +89,14 @@ def register():
             "school_id": request.form.get("school_id")
         }
 
-        users.append(user)
+        users.append(new_user)
         save(USERS_FILE, users)
 
-        return redirect("/login")
+        flash("Account created!", "success")
+        return redirect(url_for("login"))
 
     return render_template("register.html")
+
 
 # =========================
 # LOGIN
@@ -126,12 +117,14 @@ def login():
                 session["user"] = u["email"]
                 session["role"] = u["role"]
                 session["school_id"] = u["school_id"]
+                session["fullname"] = u["fullname"]
 
-                return redirect("/dashboard")
+                return redirect(url_for("dashboard"))
 
         flash("Invalid login")
 
     return render_template("login.html")
+
 
 # =========================
 # GOOGLE LOGIN
@@ -139,6 +132,7 @@ def login():
 @app.route("/login/google")
 def google_login():
     return google.authorize_redirect(url_for("google_callback", _external=True))
+
 
 @app.route("/login/google/callback")
 def google_callback():
@@ -150,10 +144,13 @@ def google_callback():
 
     for u in users:
         if u["email"] == info["email"]:
+
             session["user"] = u["email"]
             session["role"] = u["role"]
             session["school_id"] = u["school_id"]
-            return redirect("/dashboard")
+            session["fullname"] = u["fullname"]
+
+            return redirect(url_for("dashboard"))
 
     # auto create student
     new_user = {
@@ -171,89 +168,80 @@ def google_callback():
     session["user"] = new_user["email"]
     session["role"] = "student"
     session["school_id"] = None
+    session["fullname"] = new_user["fullname"]
 
-    return redirect("/dashboard")
+    return redirect(url_for("dashboard"))
+
 
 # =========================
-# DASHBOARD ROUTER
+# MAIN DASHBOARD ROUTER
 # =========================
 @app.route("/dashboard")
 def dashboard():
 
     if "user" not in session:
-        return redirect("/login")
+        return redirect(url_for("login"))
 
-    if session["role"] == "admin":
-        return render_template("admin.html")
+    role = session.get("role")
 
-    if session["role"] == "teacher":
-        return render_template("teacher.html")
+    if role == "admin":
+        return redirect(url_for("school_admin_dashboard"))
 
-    return render_template("student.html")
+    if role == "teacher":
+        return render_template("teacher_dashboard.html", user=session["fullname"])
+
+    return render_template("student_dashboard.html", user=session["fullname"])
+
+
+# =========================
+# SCHOOL ADMIN DASHBOARD (MULTI-SCHOOL CORE)
+# =========================
+@app.route("/school-admin/dashboard")
+def school_admin_dashboard():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    users = load(USERS_FILE)
+
+    current = None
+
+    for u in users:
+        if u["email"] == session["user"]:
+            current = u
+            break
+
+    if not current or current["role"] != "admin":
+        flash("Access denied")
+        return redirect(url_for("login"))
+
+    school_id = current["school_id"]
+
+    school_users = [u for u in users if u.get("school_id") == school_id]
+
+    students = [u for u in school_users if u["role"] == "student"]
+    teachers = [u for u in school_users if u["role"] == "teacher"]
+
+    return render_template(
+        "school_admin_dashboard.html",
+        user=current,
+        students=students,
+        teachers=teachers,
+        total_students=len(students),
+        total_teachers=len(teachers)
+    )
+
 
 # =========================
 # HOMEWORK SYSTEM
 # =========================
-@app.route("/homework", methods=["GET", "POST"])
+@app.route("/homework")
 def homework():
 
     data = load(HOMEWORK_FILE)
 
-    if request.method == "POST":
-
-        hw = {
-            "id": str(uuid.uuid4()),
-            "school_id": session["school_id"],
-            "title": request.form["title"],
-            "body": request.form["body"],
-            "teacher": session["user"]
-        }
-
-        data.append(hw)
-        save(HOMEWORK_FILE, data)
-
     return {"homework": data}
 
-# =========================
-# CBT SYSTEM (BASIC)
-# =========================
-@app.route("/cbt", methods=["GET", "POST"])
-def cbt():
-
-    data = load(CBT_FILE)
-
-    if request.method == "POST":
-
-        exam = {
-            "id": str(uuid.uuid4()),
-            "school_id": session["school_id"],
-            "question": request.form["question"],
-            "answer": request.form["answer"]
-        }
-
-        data.append(exam)
-        save(CBT_FILE, data)
-
-    return {"cbt": data}
-
-# =========================
-# CHAT SYSTEM (BASIC)
-# =========================
-@app.route("/chat", methods=["POST"])
-def chat():
-
-    data = load(CHAT_FILE)
-
-    msg = {
-        "user": session["user"],
-        "message": request.form["message"],
-        "school_id": session["school_id"]
-    }
-
-    data.append(msg)
-    save(CHAT_FILE, data)
-
-    return {"status": "sent"}
 
 # =========================
 # LOGOUT
@@ -261,10 +249,11 @@ def chat():
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect("/login")
+    return redirect(url_for("login"))
+
 
 # =========================
-# RUN
+# RUN APP
 # =========================
 if __name__ == "__main__":
     app.run(debug=True)
