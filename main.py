@@ -4,7 +4,11 @@ import json
 import os
 
 app = Flask(__name__)
-app.secret_key = "eduflow_ultra_secret_2026"
+
+app.config["SECRET_KEY"] = "super_ultra_secure_secret_key_2026"
+
+app.config["SESSION_COOKIE_SECURE"] = False
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
 # =========================================
 # DATA FOLDER
