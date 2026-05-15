@@ -4,276 +4,210 @@ import json
 import os
 
 app = Flask(__name__)
+app.secret_key = "eduflow_ultra_secret_2026"
 
-# ==========================================
-# SECRET KEY
-# ==========================================
-app.secret_key = "nexora_ultra_secure_key_2026"
+# =========================================
+# DATA FOLDER
+# =========================================
+DATA_FOLDER = "data"
 
-# ==========================================
-# DATABASE FILE
-# ==========================================
-USERS_FILE = "users.json"
+if not os.path.exists(DATA_FOLDER):
+    os.makedirs(DATA_FOLDER)
 
-# ==========================================
-# LOAD USERS
-# ==========================================
-def load_users():
+# =========================================
+# FILE PATHS
+# =========================================
+USERS_FILE = os.path.join(DATA_FOLDER, "users.json")
+HOMEWORK_FILE = os.path.join(DATA_FOLDER, "homework.json")
+RESULT_FILE = os.path.join(DATA_FOLDER, "results.json")
 
-    if not os.path.exists(USERS_FILE):
+# =========================================
+# CREATE FILES IF NOT EXIST
+# =========================================
+for file in [USERS_FILE, HOMEWORK_FILE, RESULT_FILE]:
+    if not os.path.exists(file):
+        with open(file, "w") as f:
+            json.dump([], f)
 
-        with open(USERS_FILE, "w") as f:
-            json.dump({}, f)
+# =========================================
+# LOAD JSON
+# =========================================
+def load_json(file):
 
-    with open(USERS_FILE, "r") as f:
-
+    with open(file, "r") as f:
         try:
-            data = json.load(f)
-
-            if isinstance(data, list):
-                return {}
-
-            return data
-
+            return json.load(f)
         except:
-            return {}
+            return []
 
+# =========================================
+# SAVE JSON
+# =========================================
+def save_json(file, data):
 
-# ==========================================
-# SAVE USERS
-# ==========================================
-def save_users(users):
+    with open(file, "w") as f:
+        json.dump(data, f, indent=4)
 
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
-
-# ==========================================
-# SPLASH SCREEN
-# ==========================================
+# =========================================
+# HOME
+# =========================================
 @app.route("/")
-def splash():
+def home():
+    return redirect(url_for("login"))
 
-    return render_template("splash.html")
-
-
-# ==========================================
-# LOGIN
-# ==========================================
-@app.route("/login", methods=["GET", "POST"])
-def login():
-
-    users = load_users()
-
-    if request.method == "POST":
-
-        username = request.form["username"].strip().lower()
-        password = request.form["password"] 
-        if username in users:
-
-            stored_password = users[username]["password"]
-
-            if check_password_hash(stored_password, password):
-
-                session["user"] = username
-                session["role"] = users[username]["role"]
-
-                flash("Welcome to Nexora!", "success")
-
-                # STUDENT
-                if users[username]["role"] == "student":
-
-                    return redirect(
-                        url_for("student_dashboard")
-                    )
-
-                # TEACHER
-                elif users[username]["role"] == "teacher":
-
-                    return redirect(
-                        url_for("teacher_dashboard")
-                    )
-
-                # ADMIN
-                elif users[username]["role"] == "admin":
-
-                    return redirect(
-                        url_for("admin_dashboard")
-                    )
-
-        flash("Invalid username or password", "error")
-
-    return render_template("login.html")
-
-
-# ==========================================
+# =========================================
 # REGISTER
-# ==========================================
+# =========================================
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    users = load_users()
+    users = load_json(USERS_FILE)
 
     if request.method == "POST":
 
-        username = request.form["username"].strip().lower()
+        fullname = request.form["fullname"]
+        email = request.form["email"]
         password = request.form["password"]
         role = request.form["role"]
 
-        # CHECK USER EXISTS
-        if username in users:
+        # CHECK IF USER EXISTS
+        for user in users:
+            if user["email"] == email:
+                flash("Account already exists!", "danger")
+                return redirect(url_for("register"))
 
-            flash("User already exists!", "error")
-
-            return redirect(
-                url_for("register")
-            )
-
-        # PASSWORD VALIDATION
-        if len(password) < 6:
-
-            flash(
-                "Password must be at least 6 characters number",
-                "error"
-            )
-
-            return redirect(
-                url_for("register")
-            )
-
-        # SAVE USER
-        users[username] = {
+        new_user = {
+            "fullname": fullname,
+            "email": email,
             "password": generate_password_hash(password),
             "role": role
         }
 
-        save_users(users)
+        users.append(new_user)
 
-        flash(
-            "Account created successfully!",
-            "success"
-        )
+        save_json(USERS_FILE, users)
 
-        return redirect(
-            url_for("login")
-        )
+        flash("Registration successful!", "success")
+
+        return redirect(url_for("login"))
 
     return render_template("register.html")
 
+# =========================================
+# LOGIN
+# =========================================
+@app.route("/login", methods=["GET", "POST"])
+def login():
 
-# ==========================================
+    users = load_json(USERS_FILE)
+
+    if request.method == "POST":
+
+        email = request.form["email"]
+        password = request.form["password"]
+
+        for user in users:
+
+            if user["email"] == email and check_password_hash(user["password"], password):
+
+                session["user"] = user["fullname"]
+                session["email"] = user["email"]
+                session["role"] = user["role"]
+
+                flash("Login successful!", "success")
+
+                # REDIRECT BY ROLE
+                if user["role"] == "student":
+                    return redirect(url_for("student_dashboard"))
+
+                elif user["role"] == "teacher":
+                    return redirect(url_for("teacher_dashboard"))
+
+                elif user["role"] == "admin":
+                    return redirect(url_for("admin_dashboard"))
+
+        flash("Invalid email or password", "danger")
+
+    return render_template("login.html")
+
+# =========================================
 # STUDENT DASHBOARD
-# ==========================================
+# =========================================
 @app.route("/student/dashboard")
 def student_dashboard():
 
     if "user" not in session:
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     if session["role"] != "student":
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     return render_template(
         "student_dashboard.html",
         user=session["user"]
     )
 
-
-# ==========================================
+# =========================================
 # TEACHER DASHBOARD
-# ==========================================
+# =========================================
 @app.route("/teacher/dashboard")
 def teacher_dashboard():
 
     if "user" not in session:
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     if session["role"] != "teacher":
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     return render_template(
         "teacher_dashboard.html",
         user=session["user"]
     )
 
-
-# ==========================================
+# =========================================
 # ADMIN DASHBOARD
-# ==========================================
+# =========================================
 @app.route("/admin/dashboard")
 def admin_dashboard():
 
     if "user" not in session:
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     if session["role"] != "admin":
+        return redirect(url_for("login"))
 
-        return redirect(
-            url_for("login")
-        )
+    users = load_json(USERS_FILE)
+    homework = load_json(HOMEWORK_FILE)
+    results = load_json(RESULT_FILE)
+
+    student_count = len([u for u in users if u["role"] == "student"])
+    teacher_count = len([u for u in users if u["role"] == "teacher"])
 
     return render_template(
         "admin_dashboard.html",
-        user=session["user"]
+        user=session["user"],
+        students=student_count,
+        teachers=teacher_count,
+        homework_count=len(homework),
+        results_count=len(results)
     )
 
-
-# =========================
-# HOMEWORK FILE
-# =========================
-HOMEWORK_FILE = "data/homework.json"
-
-
-# =========================
-# LOAD HOMEWORK
-# =========================
-def load_homework():
-    if not os.path.exists(HOMEWORK_FILE):
-        return []
-
-    with open(HOMEWORK_FILE, "r") as f:
-        return json.load(f)
-
-
-# =========================
-# SAVE HOMEWORK
-# =========================
-def save_homework(homeworks):
-    with open(HOMEWORK_FILE, "w") as f:
-        json.dump(homeworks, f, indent=4)
-
-
-# =========================
-# HOMEWORK PAGE
-# =========================
+# =========================================
+# HOMEWORK
+# =========================================
 @app.route("/homework", methods=["GET", "POST"])
 def homework():
 
     if "user" not in session:
         return redirect(url_for("login"))
 
-    homeworks = load_homework()
+    homework_data = load_json(HOMEWORK_FILE)
 
-    # TEACHER POSTS HOMEWORK
+    # TEACHER POST HOMEWORK
     if request.method == "POST":
 
-        if session.get("role") != "teacher":
-            flash("Only teachers can upload homework")
+        if session["role"] != "teacher":
+            flash("Only teachers can upload homework", "danger")
             return redirect(url_for("homework"))
 
         title = request.form["title"]
@@ -287,80 +221,102 @@ def homework():
             "teacher": session["user"]
         }
 
-        homeworks.append(new_homework)
+        homework_data.append(new_homework)
 
-        save_homework(homeworks)
+        save_json(HOMEWORK_FILE, homework_data)
 
-        flash("Homework uploaded successfully!")
+        flash("Homework uploaded!", "success")
 
         return redirect(url_for("homework"))
 
     return render_template(
         "homework.html",
-        homeworks=homeworks,
-        role=session.get("role")
+        homeworks=homework_data,
+        role=session["role"]
     )
 
+# =========================================
+# RESULTS
+# =========================================
+@app.route("/results", methods=["GET", "POST"])
+def results():
 
-# ==========================================
-# TIMETABLE PAGE
-# ==========================================
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    results_data = load_json(RESULT_FILE)
+
+    # TEACHER ADD RESULT
+    if request.method == "POST":
+
+        if session["role"] != "teacher":
+            flash("Only teachers can upload results", "danger")
+            return redirect(url_for("results"))
+
+        student = request.form["student"]
+        subject = request.form["subject"]
+        score = request.form["score"]
+
+        new_result = {
+            "student": student,
+            "subject": subject,
+            "score": score,
+            "teacher": session["user"]
+        }
+
+        results_data.append(new_result)
+
+        save_json(RESULT_FILE, results_data)
+
+        flash("Result uploaded successfully!", "success")
+
+        return redirect(url_for("results"))
+
+    return render_template(
+        "results.html",
+        results=results_data,
+        role=session["role"]
+    )
+
+# =========================================
+# TIMETABLE
+# =========================================
 @app.route("/timetable")
 def timetable():
 
     if "user" not in session:
+        return redirect(url_for("login"))
 
-        return redirect(
-            url_for("login")
-        )
+    return render_template("timetable.html")
 
-    return render_template(
-        "timetable.html"
-    )
-
-
-# ==========================================
-# CHAT PAGE
-# ==========================================
+# =========================================
+# CHAT
+# =========================================
 @app.route("/chat")
 def chat():
 
     if "user" not in session:
-
-        return redirect(
-            url_for("login")
-        )
+        return redirect(url_for("login"))
 
     return render_template(
-        "chat.html"
+        "chat.html",
+        user=session["user"]
     )
 
-
-# ==========================================
+# =========================================
 # LOGOUT
-# ==========================================
+# =========================================
 @app.route("/logout")
 def logout():
 
     session.clear()
 
-    flash(
-        "Logged out successfully",
-        "success"
-    )
+    flash("Logged out successfully!", "success")
 
-    return redirect(
-        url_for("login")
-    )
+    return redirect(url_for("login"))
 
-
-# ==========================================
+# =========================================
 # RUN APP
-# ==========================================
+# =========================================
 if __name__ == "__main__":
-
-    app.run(
-        debug=True,
-        host="0.0.0.0",
-        port=5000
-    )
+    app.run(debug=True)
