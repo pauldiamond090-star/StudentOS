@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>School Admin Dashboard</title>
+    <style>
+        body{
+            font-family:Arial;
+            background:#0b1b3a;
+            color:white;
+            padding:20px;
+        }
+
+        .card{
+            background:#142a55;
+            padding:20px;
+            border-radius:15px;
+            margin-bottom:15px;
+        }
+
+        .grid{
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
+
+        h1{
+            color:#4da3ff;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🏫 School Admin Panel</h1>
+
+<div class="card">
+    <h2>Welcome {{ user.fullname }}</h2>
+    <p>Email: {{ user.email }}</p>
+</div>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>Total Students</h2>
+        <h1>{{ total_students }}</h1>
+    </div>
+
+    <div class="card">
+        <h2>Total Teachers</h2>
+        <h1>{{ total_teachers }}</h1>
+    </div>
+
+</div>
+
+<div class="card">
+    <h2>Student List</h2>
+    {% for s in students %}
+        <p>👨‍🎓 {{ s.fullname }} - {{ s.email }}</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h2>Teacher List</h2>
+    {% for t in teachers %}
+        <p>👨‍🏫 {{ t.fullname }} - {{ t.email }}</p>
+    {% endfor %}
+</div>
+
+</body>
+      </html>
