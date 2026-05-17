@@ -1,30 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from authlib.integrations.flask_client import OAuth
 import json
 import os
 import uuid
 
 app = Flask(__name__)
 app.secret_key = "edunova_super_saas_2026"
-
-# =========================
-# GOOGLE AUTH (OPTIONAL READY)
-# =========================
-oauth = OAuth(app)
-
-app.config["GOOGLE_CLIENT_ID"] = "YOUR_GOOGLE_CLIENT_ID"
-app.config["GOOGLE_CLIENT_SECRET"] = "YOUR_GOOGLE_CLIENT_SECRET"
-
-google = oauth.register(
-    name="google",
-    client_id=app.config["GOOGLE_CLIENT_ID"],
-    client_secret=app.config["GOOGLE_CLIENT_SECRET"],
-    access_token_url="https://oauth2.googleapis.com/token",
-    authorize_url="https://accounts.google.com/o/oauth2/auth",
-    api_base_url="https://www.googleapis.com/oauth2/v1/",
-    client_kwargs={"scope": "email profile"},
-)
 
 # =========================
 # DATA FOLDER
