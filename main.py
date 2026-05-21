@@ -2,239 +2,380 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 import os
-import uuid
 
 app = Flask(__name__)
-app.secret_key = "edunova_super_saas_2026"
+app.secret_key = "edunova_secret_2026"
 
-# =========================
+# =========================================
 # DATA FOLDER
-# =========================
+# =========================================
 DATA_FOLDER = "data"
-os.makedirs(DATA_FOLDER, exist_ok=True)
+
+if not os.path.exists(DATA_FOLDER):
+    os.makedirs(DATA_FOLDER)
 
 USERS_FILE = os.path.join(DATA_FOLDER, "users.json")
-SCHOOLS_FILE = os.path.join(DATA_FOLDER, "schools.json")
 HOMEWORK_FILE = os.path.join(DATA_FOLDER, "homework.json")
+SCHOOLS_FILE = os.path.join(DATA_FOLDER, "schools.json")
 
 
-# =========================
-# INIT FILES
-# =========================
-def init_file(path, default):
-    if not os.path.exists(path):
-        with open(path, "w") as f:
-            json.dump(default, f, indent=4)
-
-init_file(USERS_FILE, [])
-init_file(SCHOOLS_FILE, [])
-init_file(HOMEWORK_FILE, [])
+# =========================================
+# CREATE FILES
+# =========================================
+def create_file(file, default_data):
+    if not os.path.exists(file):
+        with open(file, "w") as f:
+            json.dump(default_data, f, indent=4)
 
 
-# =========================
-# JSON HELPERS
-# =========================
-def load(file):
-    with open(file, "r") as f:
-        return json.load(f)
+create_file(USERS_FILE, [])
+create_file(HOMEWORK_FILE, [])
+create_file(SCHOOLS_FILE, [])
 
-def save(file, data):
+
+# =========================================
+# LOAD JSON
+# =========================================
+def load_json(file):
+    try:
+        with open(file, "r") as f:
+            return json.load(f)
+    except:
+        return []
+
+
+# =========================================
+# SAVE JSON
+# =========================================
+def save_json(file, data):
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
 
-# =========================
+# =========================================
 # HOME
-# =========================
+# =========================================
 @app.route("/")
 def home():
     return redirect(url_for("login"))
 
 
-# =========================
-# REGISTER USER
-# =========================
+# =========================================
+# REGISTER
+# =========================================
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
-    users = load(USERS_FILE)
+    users = load_json(USERS_FILE)
+    schools = load_json(SCHOOLS_FILE)
 
     if request.method == "POST":
 
+        fullname = request.form.get("fullname")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        role = request.form.get("role")
+        school_name = request.form.get("school")
+
+        # CHECK EXISTING USER
+        for user in users:
+            if user["email"] == email:
+                flash("Account already exists!", "danger")
+                return redirect(url_for("register"))
+
+        # CREATE USER
         new_user = {
-            "id": str(uuid.uuid4()),
-            "fullname": request.form["fullname"],
-            "email": request.form["email"],
-            "password": generate_password_hash(request.form["password"]),
-            "role": request.form["role"],
-            "school_id": request.form.get("school_id")
+            "fullname": fullname,
+            "email": email,
+            "password": generate_password_hash(password),
+            "role": role,
+            "school": school_name
         }
 
         users.append(new_user)
-        save(USERS_FILE, users)
+        save_json(USERS_FILE, users)
 
-        flash("Account created!", "success")
+        flash("Account created successfully!", "success")
+
         return redirect(url_for("login"))
 
-    return render_template("register.html")
+    return render_template(
+        "register.html",
+        schools=schools
+    )
 
 
-# =========================
+# =========================================
 # LOGIN
-# =========================
+# =========================================
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-    users = load(USERS_FILE)
+    users = load_json(USERS_FILE)
 
     if request.method == "POST":
 
-        email = request.form["email"]
-        password = request.form["password"]
+        email = request.form.get("email")
+        password = request.form.get("password")
 
-        for u in users:
-            if u["email"] == email and check_password_hash(u["password"], password):
+        for user in users:
 
-                session["user"] = u["email"]
-                session["role"] = u["role"]
-                session["school_id"] = u["school_id"]
-                session["fullname"] = u["fullname"]
+            if (
+                user["email"] == email
+                and check_password_hash(user["password"], password)
+            ):
 
-                return redirect(url_for("dashboard"))
+                session["user"] = user["email"]
+                session["fullname"] = user["fullname"]
+                session["role"] = user["role"]
+                session["school"] = user["school"]
 
-        flash("Invalid login")
+                flash("Login successful!", "success")
+
+                if user["role"] == "student":
+                    return redirect(url_for("student_dashboard"))
+
+                elif user["role"] == "teacher":
+                    return redirect(url_for("teacher_dashboard"))
+
+                elif user["role"] == "admin":
+                    return redirect(url_for("admin_dashboard"))
+
+                elif user["role"] == "school_admin":
+                    return redirect(url_for("school_admin_dashboard"))
+
+        flash("Invalid email or password!", "danger")
 
     return render_template("login.html")
 
 
-# =========================
-# GOOGLE LOGIN
-# =========================
-@app.route("/login/google")
-def google_login():
-    return google.authorize_redirect(url_for("google_callback", _external=True))
-
-
-@app.route("/login/google/callback")
-def google_callback():
-
-    token = google.authorize_access_token()
-    info = google.get("userinfo").json()
-
-    users = load(USERS_FILE)
-
-    for u in users:
-        if u["email"] == info["email"]:
-
-            session["user"] = u["email"]
-            session["role"] = u["role"]
-            session["school_id"] = u["school_id"]
-            session["fullname"] = u["fullname"]
-
-            return redirect(url_for("dashboard"))
-
-    # auto create student
-    new_user = {
-        "id": str(uuid.uuid4()),
-        "fullname": info["name"],
-        "email": info["email"],
-        "password": "",
-        "role": "student",
-        "school_id": None
-    }
-
-    users.append(new_user)
-    save(USERS_FILE, users)
-
-    session["user"] = new_user["email"]
-    session["role"] = "student"
-    session["school_id"] = None
-    session["fullname"] = new_user["fullname"]
-
-    return redirect(url_for("dashboard"))
-
-
-# =========================
-# MAIN DASHBOARD ROUTER
-# =========================
-@app.route("/dashboard")
-def dashboard():
+# =========================================
+# STUDENT DASHBOARD
+# =========================================
+@app.route("/student/dashboard")
+def student_dashboard():
 
     if "user" not in session:
         return redirect(url_for("login"))
 
-    role = session.get("role")
+    if session["role"] != "student":
+        return redirect(url_for("login"))
 
-    if role == "admin":
-        return redirect(url_for("school_admin_dashboard"))
+    homework = load_json(HOMEWORK_FILE)
 
-    if role == "teacher":
-        return render_template("teacher_dashboard.html", user=session["fullname"])
+    return render_template(
+        "student_dashboard.html",
+        user=session["fullname"],
+        homework=homework
+    )
 
-    return render_template("student_dashboard.html", user=session["fullname"])
+
+# =========================================
+# TEACHER DASHBOARD
+# =========================================
+@app.route("/teacher/dashboard")
+def teacher_dashboard():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    if session["role"] != "teacher":
+        return redirect(url_for("login"))
+
+    homework = load_json(HOMEWORK_FILE)
+
+    return render_template(
+        "teacher_dashboard.html",
+        user=session["fullname"],
+        homework=homework
+    )
 
 
-# =========================
-# SCHOOL ADMIN DASHBOARD (MULTI-SCHOOL CORE)
-# =========================
+# =========================================
+# MAIN ADMIN DASHBOARD
+# =========================================
+@app.route("/admin/dashboard")
+def admin_dashboard():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    if session["role"] != "admin":
+        return redirect(url_for("login"))
+
+    users = load_json(USERS_FILE)
+    schools = load_json(SCHOOLS_FILE)
+
+    return render_template(
+        "admin_dashboard.html",
+        user=session["fullname"],
+        users=users,
+        schools=schools
+    )
+
+
+# =========================================
+# SCHOOL ADMIN DASHBOARD
+# =========================================
 @app.route("/school-admin/dashboard")
 def school_admin_dashboard():
 
     if "user" not in session:
         return redirect(url_for("login"))
 
-    users = load(USERS_FILE)
-
-    current = None
-
-    for u in users:
-        if u["email"] == session["user"]:
-            current = u
-            break
-
-    if not current or current["role"] != "admin":
-        flash("Access denied")
+    if session["role"] != "school_admin":
         return redirect(url_for("login"))
 
-    school_id = current["school_id"]
+    users = load_json(USERS_FILE)
 
-    school_users = [u for u in users if u.get("school_id") == school_id]
+    school_students = []
+    school_teachers = []
 
-    students = [u for u in school_users if u["role"] == "student"]
-    teachers = [u for u in school_users if u["role"] == "teacher"]
+    for user in users:
+
+        if user["school"] == session["school"]:
+
+            if user["role"] == "student":
+                school_students.append(user)
+
+            elif user["role"] == "teacher":
+                school_teachers.append(user)
 
     return render_template(
         "school_admin_dashboard.html",
-        user=current,
-        students=students,
-        teachers=teachers,
-        total_students=len(students),
-        total_teachers=len(teachers)
+        user=session["fullname"],
+        school=session["school"],
+        students=school_students,
+        teachers=school_teachers
     )
 
 
-# =========================
-# HOMEWORK SYSTEM
-# =========================
+# =========================================
+# ADD SCHOOL
+# =========================================
+@app.route("/add-school", methods=["POST"])
+def add_school():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    if session["role"] != "admin":
+        return redirect(url_for("login"))
+
+    schools = load_json(SCHOOLS_FILE)
+
+    school_name = request.form.get("school_name")
+
+    new_school = {
+        "name": school_name
+    }
+
+    schools.append(new_school)
+
+    save_json(SCHOOLS_FILE, schools)
+
+    flash("School added successfully!", "success")
+
+    return redirect(url_for("admin_dashboard"))
+
+
+# =========================================
+# ADD HOMEWORK
+# =========================================
+@app.route("/add-homework", methods=["GET", "POST"])
+def add_homework():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    if session["role"] != "teacher":
+        return redirect(url_for("login"))
+
+    homework = load_json(HOMEWORK_FILE)
+
+    if request.method == "POST":
+
+        title = request.form.get("title")
+        subject = request.form.get("subject")
+        description = request.form.get("description")
+        deadline = request.form.get("deadline")
+
+        new_homework = {
+            "title": title,
+            "subject": subject,
+            "description": description,
+            "deadline": deadline,
+            "teacher": session["fullname"],
+            "school": session["school"]
+        }
+
+        homework.append(new_homework)
+
+        save_json(HOMEWORK_FILE, homework)
+
+        flash("Homework uploaded!", "success")
+
+        return redirect(url_for("teacher_dashboard"))
+
+    return render_template("upload_homework.html")
+
+
+# =========================================
+# HOMEWORK PAGE
+# =========================================
 @app.route("/homework")
-def homework():
+def homework_page():
 
-    data = load(HOMEWORK_FILE)
+    if "user" not in session:
+        return redirect(url_for("login"))
 
-    return {"homework": data}
+    homework = load_json(HOMEWORK_FILE)
+
+    return render_template(
+        "homework.html",
+        homework=homework
+    )
 
 
-# =========================
+# =========================================
+# CHAT
+# =========================================
+@app.route("/chat")
+def chat():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("chat.html")
+
+
+# =========================================
+# TIMETABLE
+# =========================================
+@app.route("/timetable")
+def timetable():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("timetable.html")
+
+
+# =========================================
 # LOGOUT
-# =========================
+# =========================================
 @app.route("/logout")
 def logout():
+
     session.clear()
+
+    flash("Logged out successfully!", "success")
+
     return redirect(url_for("login"))
 
 
-# =========================
+# =========================================
 # RUN APP
-# =========================
+# =========================================
 if __name__ == "__main__":
     app.run(debug=True)
