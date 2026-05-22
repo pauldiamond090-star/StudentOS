@@ -1,1 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Results</title>
 
+    <style>
+
+        body{
+            background:#0f172a;
+            color:white;
+            font-family:Arial;
+            padding:20px;
+        }
+
+        .card{
+            background:#1e293b;
+            padding:20px;
+            border-radius:15px;
+            margin-bottom:20px;
+        }
+
+        .score{
+            color:#22c55e;
+            font-size:30px;
+            font-weight:bold;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<h1>My Exam Results</h1>
+
+{% for result in results %}
+
+<div class="card">
+
+    <h2>{{ result.exam_title }}</h2>
+
+    <p>{{ result.subject }}</p>
+
+    <p class="score">{{ result.score }}%</p>
+
+</div>
+
+{% endfor %}
+
+</body>
+</html>
