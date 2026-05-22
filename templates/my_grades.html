@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Grades</title>
 
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial, sans-serif;
+        }
+
+        body{
+            background:#0f172a;
+            color:white;
+            padding:20px;
+        }
+
+        h1{
+            text-align:center;
+            margin-bottom:30px;
+            color:#38bdf8;
+        }
+
+        .grades-container{
+            max-width:900px;
+            margin:auto;
+        }
+
+        .grade-card{
+            background:#1e293b;
+            padding:25px;
+            border-radius:20px;
+            margin-bottom:20px;
+            box-shadow:0 0 15px rgba(0,0,0,0.3);
+        }
+
+        .subject{
+            font-size:24px;
+            font-weight:bold;
+            color:#22c55e;
+            margin-bottom:15px;
+        }
+
+        .score{
+            font-size:20px;
+            margin-bottom:10px;
+        }
+
+        .remark{
+            margin-top:15px;
+            padding:15px;
+            background:#334155;
+            border-radius:12px;
+            line-height:1.6;
+        }
+
+        .empty{
+            text-align:center;
+            margin-top:100px;
+            color:#94a3b8;
+            font-size:20px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<h1>My Academic Results</h1>
+
+<div class="grades-container">
+
+    {% if grades %}
+
+        {% for grade in grades %}
+
+            <div class="grade-card">
+
+                <div class="subject">
+                    {{ grade.subject }}
+                </div>
+
+                <div class="score">
+                    Score: <strong>{{ grade.score }}</strong>
+                </div>
+
+                <div>
+                    Teacher: {{ grade.teacher }}
+                </div>
+
+                <div class="remark">
+                    {{ grade.remark }}
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty">
+            No grades available yet.
+        </div>
+
+    {% endif %}
+
+</div>
+
+</body>
+</html>
