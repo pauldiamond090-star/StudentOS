@@ -8,29 +8,27 @@ app = Flask(__name__)
 app.secret_key = "edunova_secret_2026"
 
 # =========================================
-# DATA FOLDER
+# FOLDERS
 # =========================================
 DATA_FOLDER = "data"
-
-if not os.path.exists(DATA_FOLDER):
-    os.makedirs(DATA_FOLDER)
-
 UPLOAD_FOLDER = "uploads"
 
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # =========================================
-# DATABASE FILES
+# FILES
 # =========================================
 USERS_FILE = os.path.join(DATA_FOLDER, "users.json")
 HOMEWORK_FILE = os.path.join(DATA_FOLDER, "homework.json")
 SCHOOLS_FILE = os.path.join(DATA_FOLDER, "schools.json")
 EXAMS_FILE = os.path.join(DATA_FOLDER, "exams.json")
 RESULTS_FILE = os.path.join(DATA_FOLDER, "results.json")
-
+MESSAGES_FILE = os.path.join(DATA_FOLDER, "messages.json")
+GRADES_FILE = os.path.join(DATA_FOLDER, "grades.json")
+SUBSCRIPTIONS_FILE = os.path.join(DATA_FOLDER, "subscriptions.json")
 
 # =========================================
 # CREATE FILES
@@ -42,13 +40,14 @@ def create_file(file, default_data):
         with open(file, "w") as f:
             json.dump(default_data, f, indent=4)
 
-
 create_file(USERS_FILE, [])
 create_file(HOMEWORK_FILE, [])
 create_file(SCHOOLS_FILE, [])
 create_file(EXAMS_FILE, [])
 create_file(RESULTS_FILE, [])
-
+create_file(MESSAGES_FILE, [])
+create_file(GRADES_FILE, [])
+create_file(SUBSCRIPTIONS_FILE, [])
 
 # =========================================
 # LOAD JSON
@@ -63,7 +62,6 @@ def load_json(file):
     except:
         return []
 
-
 # =========================================
 # SAVE JSON
 # =========================================
@@ -72,14 +70,12 @@ def save_json(file, data):
     with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
-
 # =========================================
 # HOME
 # =========================================
 @app.route("/")
 def home():
     return redirect(url_for("login"))
-
 
 # =========================================
 # REGISTER
@@ -96,14 +92,13 @@ def register():
         email = request.form.get("email")
         password = request.form.get("password")
         role = request.form.get("role")
-        school_name = request.form.get("school")
+        school = request.form.get("school")
 
         for user in users:
 
             if user["email"] == email:
 
                 flash("Account already exists!", "danger")
-
                 return redirect(url_for("register"))
 
         new_user = {
@@ -111,7 +106,7 @@ def register():
             "email": email,
             "password": generate_password_hash(password),
             "role": role,
-            "school": school_name
+            "school": school
         }
 
         users.append(new_user)
@@ -126,7 +121,6 @@ def register():
         "register.html",
         schools=schools
     )
-
 
 # =========================================
 # LOGIN
@@ -144,8 +138,8 @@ def login():
         for user in users:
 
             if (
-                user["email"] == email
-                and check_password_hash(user["password"], password)
+                user["email"] == email and
+                check_password_hash(user["password"], password)
             ):
 
                 session["user"] = user["email"]
@@ -167,10 +161,9 @@ def login():
                 elif user["role"] == "school_admin":
                     return redirect(url_for("school_admin_dashboard"))
 
-        flash("Invalid email or password!", "danger")
+        flash("Invalid login details!", "danger")
 
     return render_template("login.html")
-
 
 # =========================================
 # STUDENT DASHBOARD
@@ -189,7 +182,6 @@ def student_dashboard():
         homework=homework
     )
 
-
 # =========================================
 # TEACHER DASHBOARD
 # =========================================
@@ -204,9 +196,8 @@ def teacher_dashboard():
         user=session["fullname"]
     )
 
-
 # =========================================
-# MAIN ADMIN DASHBOARD
+# ADMIN DASHBOARD
 # =========================================
 @app.route("/admin/dashboard")
 def admin_dashboard():
@@ -223,7 +214,6 @@ def admin_dashboard():
         users=users,
         schools=schools
     )
-
 
 # =========================================
 # SCHOOL ADMIN DASHBOARD
@@ -257,25 +247,19 @@ def school_admin_dashboard():
         school=session["school"]
     )
 
-
 # =========================================
 # ADD SCHOOL
 # =========================================
 @app.route("/add-school", methods=["POST"])
 def add_school():
 
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     schools = load_json(SCHOOLS_FILE)
 
     school_name = request.form.get("school_name")
 
-    new_school = {
+    schools.append({
         "name": school_name
-    }
-
-    schools.append(new_school)
+    })
 
     save_json(SCHOOLS_FILE, schools)
 
@@ -283,9 +267,8 @@ def add_school():
 
     return redirect(url_for("admin_dashboard"))
 
-
 # =========================================
-# ADD HOMEWORK
+# HOMEWORK SYSTEM
 # =========================================
 @app.route("/add-homework", methods=["GET", "POST"])
 def add_homework():
@@ -297,16 +280,11 @@ def add_homework():
 
     if request.method == "POST":
 
-        title = request.form.get("title")
-        subject = request.form.get("subject")
-        description = request.form.get("description")
-        deadline = request.form.get("deadline")
-
         new_homework = {
-            "title": title,
-            "subject": subject,
-            "description": description,
-            "deadline": deadline,
+            "title": request.form.get("title"),
+            "subject": request.form.get("subject"),
+            "description": request.form.get("description"),
+            "deadline": request.form.get("deadline"),
             "teacher": session["fullname"],
             "school": session["school"]
         }
@@ -321,58 +299,26 @@ def add_homework():
 
     return render_template("upload_homework.html")
 
-
 # =========================================
-# HOMEWORK PAGE
-# =========================================
-@app.route("/homework")
-def homework_page():
-
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    homework = load_json(HOMEWORK_FILE)
-
-    return render_template(
-        "homework.html",
-        homework=homework
-    )
-
-
-# =========================================
-# CREATE EXAM
+# CBT EXAM ENGINE
 # =========================================
 @app.route("/create-exam", methods=["GET", "POST"])
 def create_exam():
-
-    if "user" not in session:
-        return redirect(url_for("login"))
 
     exams = load_json(EXAMS_FILE)
 
     if request.method == "POST":
 
-        title = request.form.get("title")
-        subject = request.form.get("subject")
-        question = request.form.get("question")
-
-        option_a = request.form.get("option_a")
-        option_b = request.form.get("option_b")
-        option_c = request.form.get("option_c")
-        option_d = request.form.get("option_d")
-
-        correct_answer = request.form.get("correct_answer")
-
         new_exam = {
             "id": len(exams) + 1,
-            "title": title,
-            "subject": subject,
-            "question": question,
-            "option_a": option_a,
-            "option_b": option_b,
-            "option_c": option_c,
-            "option_d": option_d,
-            "correct_answer": correct_answer,
+            "title": request.form.get("title"),
+            "subject": request.form.get("subject"),
+            "question": request.form.get("question"),
+            "option_a": request.form.get("option_a"),
+            "option_b": request.form.get("option_b"),
+            "option_c": request.form.get("option_c"),
+            "option_d": request.form.get("option_d"),
+            "correct_answer": request.form.get("correct_answer"),
             "teacher": session["fullname"],
             "school": session["school"]
         }
@@ -381,21 +327,17 @@ def create_exam():
 
         save_json(EXAMS_FILE, exams)
 
-        flash("Exam created successfully!", "success")
+        flash("Exam created!", "success")
 
         return redirect(url_for("teacher_dashboard"))
 
     return render_template("create_exam.html")
-
 
 # =========================================
 # VIEW EXAMS
 # =========================================
 @app.route("/exams")
 def exams():
-
-    if "user" not in session:
-        return redirect(url_for("login"))
 
     exams = load_json(EXAMS_FILE)
 
@@ -411,15 +353,11 @@ def exams():
         exams=school_exams
     )
 
-
 # =========================================
 # TAKE EXAM
 # =========================================
 @app.route("/take-exam/<int:exam_id>", methods=["GET", "POST"])
 def take_exam(exam_id):
-
-    if "user" not in session:
-        return redirect(url_for("login"))
 
     exams = load_json(EXAMS_FILE)
     results = load_json(RESULTS_FILE)
@@ -432,12 +370,6 @@ def take_exam(exam_id):
             selected_exam = exam
             break
 
-    if selected_exam is None:
-
-        flash("Exam not found!", "danger")
-
-        return redirect(url_for("exams"))
-
     if request.method == "POST":
 
         answer = request.form.get("answer")
@@ -447,22 +379,19 @@ def take_exam(exam_id):
         if answer == selected_exam["correct_answer"]:
             score = 100
 
-        result = {
+        results.append({
             "student": session["fullname"],
             "exam_title": selected_exam["title"],
             "subject": selected_exam["subject"],
             "score": score,
             "school": session["school"]
-        }
-
-        results.append(result)
+        })
 
         save_json(RESULTS_FILE, results)
 
         return render_template(
             "exam_result.html",
-            score=score,
-            exam=selected_exam
+            score=score
         )
 
     return render_template(
@@ -470,39 +399,31 @@ def take_exam(exam_id):
         exam=selected_exam
     )
 
-
 # =========================================
 # RESULTS
 # =========================================
 @app.route("/results")
 def results():
 
-    if "user" not in session:
-        return redirect(url_for("login"))
-
     results = load_json(RESULTS_FILE)
 
-    student_results = []
+    my_results = []
 
     for result in results:
 
         if result["student"] == session["fullname"]:
-            student_results.append(result)
+            my_results.append(result)
 
     return render_template(
         "results.html",
-        results=student_results
+        results=my_results
     )
-
 
 # =========================================
 # FILE UPLOAD SYSTEM
 # =========================================
 @app.route("/upload-file", methods=["GET", "POST"])
 def upload_file():
-
-    if "user" not in session:
-        return redirect(url_for("login"))
 
     if request.method == "POST":
 
@@ -525,30 +446,132 @@ def upload_file():
 
     return render_template("upload_file.html")
 
+# =========================================
+# REAL-TIME CHAT
+# =========================================
+@app.route("/chat-room", methods=["GET", "POST"])
+def chat_room():
+
+    messages = load_json(MESSAGES_FILE)
+
+    if request.method == "POST":
+
+        new_message = {
+            "sender": session["fullname"],
+            "role": session["role"],
+            "school": session["school"],
+            "message": request.form.get("message")
+        }
+
+        messages.append(new_message)
+
+        save_json(MESSAGES_FILE, messages)
+
+        return redirect(url_for("chat_room"))
+
+    school_messages = []
+
+    for msg in messages:
+
+        if msg["school"] == session["school"]:
+            school_messages.append(msg)
+
+    return render_template(
+        "chat_room.html",
+        messages=school_messages
+    )
 
 # =========================================
-# CHAT
+# GRADING SYSTEM
 # =========================================
-@app.route("/chat")
-def chat():
+@app.route("/add-grade", methods=["GET", "POST"])
+def add_grade():
 
-    if "user" not in session:
-        return redirect(url_for("login"))
+    grades = load_json(GRADES_FILE)
+    users = load_json(USERS_FILE)
 
-    return render_template("chat.html")
+    if request.method == "POST":
 
+        grades.append({
+            "student": request.form.get("student"),
+            "subject": request.form.get("subject"),
+            "score": request.form.get("score"),
+            "remark": request.form.get("remark"),
+            "teacher": session["fullname"],
+            "school": session["school"]
+        })
+
+        save_json(GRADES_FILE, grades)
+
+        flash("Grade added!", "success")
+
+        return redirect(url_for("teacher_dashboard"))
+
+    students = []
+
+    for user in users:
+
+        if (
+            user["role"] == "student" and
+            user["school"] == session["school"]
+        ):
+
+            students.append(user)
+
+    return render_template(
+        "add_grade.html",
+        students=students
+    )
 
 # =========================================
-# TIMETABLE
+# MY GRADES
 # =========================================
-@app.route("/timetable")
-def timetable():
+@app.route("/my-grades")
+def my_grades():
 
-    if "user" not in session:
-        return redirect(url_for("login"))
+    grades = load_json(GRADES_FILE)
 
-    return render_template("timetable.html")
+    my_results = []
 
+    for grade in grades:
+
+        if grade["student"] == session["fullname"]:
+            my_results.append(grade)
+
+    return render_template(
+        "my_grades.html",
+        grades=my_results
+    )
+
+# =========================================
+# SUBSCRIPTION SYSTEM
+# =========================================
+@app.route("/plans")
+def plans():
+
+    plans = [
+        {
+            "name": "Free",
+            "price": "₦0/month"
+        },
+        {
+            "name": "Starter",
+            "price": "₦5,000/month"
+        },
+        {
+            "name": "Pro",
+            "price": "₦15,000/month"
+        },
+        {
+            "name": "Enterprise",
+            "price": "₦50,000/month"
+        }
+    ]
+
+    return render_template(
+        "plans.html",
+        plans=plans
+    )
 
 # =========================================
 # LOGOUT
@@ -558,10 +581,9 @@ def logout():
 
     session.clear()
 
-    flash("Logged out successfully!", "success")
+    flash("Logged out!", "success")
 
     return redirect(url_for("login"))
-
 
 # =========================================
 # RUN APP
