@@ -1,1 +1,84 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Take Exam</title>
+
+    <style>
+
+        body{
+            background:#0f172a;
+            font-family:Arial;
+            color:white;
+            padding:20px;
+        }
+
+        .container{
+            max-width:700px;
+            margin:auto;
+            background:#1e293b;
+            padding:30px;
+            border-radius:20px;
+        }
+
+        .option{
+            background:#334155;
+            padding:15px;
+            margin-top:15px;
+            border-radius:10px;
+        }
+
+        button{
+            width:100%;
+            padding:15px;
+            margin-top:20px;
+            background:#22c55e;
+            color:white;
+            border:none;
+            border-radius:10px;
+            font-size:18px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h1>{{ exam.title }}</h1>
+
+    <h3>{{ exam.subject }}</h3>
+
+    <p>{{ exam.question }}</p>
+
+    <form method="POST">
+
+        <div class="option">
+            <input type="radio" name="answer" value="A" required>
+            {{ exam.option_a }}
+        </div>
+
+        <div class="option">
+            <input type="radio" name="answer" value="B">
+            {{ exam.option_b }}
+        </div>
+
+        <div class="option">
+            <input type="radio" name="answer" value="C">
+            {{ exam.option_c }}
+        </div>
+
+        <div class="option">
+            <input type="radio" name="answer" value="D">
+            {{ exam.option_d }}
+        </div>
+
+        <button type="submit">Submit Exam</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
