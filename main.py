@@ -5,12 +5,17 @@ from werkzeug.utils import secure_filename
 import json
 import os
 
+# =========================================
+# APP CONFIG
+# =========================================
 app = Flask(__name__)
+
+app.secret_key = "edunova_secret_2026"
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-app.secret_key = "edunova_secret_2026"
 
 # =========================================
 # FOLDERS
@@ -76,6 +81,168 @@ def save_json(file, data):
         json.dump(data, f, indent=4)
 
 # =========================================
+# DATABASE MODELS
+# =========================================
+class User(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    fullname = db.Column(db.String(200), nullable=False)
+
+    email = db.Column(db.String(200), unique=True, nullable=False)
+
+    password = db.Column(db.String(300), nullable=False)
+
+    role = db.Column(db.String(50), nullable=False)
+
+    school = db.Column(db.String(200))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class School(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(200), unique=True, nullable=False)
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class Homework(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    title = db.Column(db.String(200), nullable=False)
+
+    subject = db.Column(db.String(200), nullable=False)
+
+    description = db.Column(db.Text)
+
+    deadline = db.Column(db.String(100))
+
+    teacher = db.Column(db.String(200))
+
+    school = db.Column(db.String(200))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class Exam(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    title = db.Column(db.String(200), nullable=False)
+
+    subject = db.Column(db.String(200), nullable=False)
+
+    question = db.Column(db.Text)
+
+    option_a = db.Column(db.String(300))
+
+    option_b = db.Column(db.String(300))
+
+    option_c = db.Column(db.String(300))
+
+    option_d = db.Column(db.String(300))
+
+    correct_answer = db.Column(db.String(100))
+
+    teacher = db.Column(db.String(200))
+
+    school = db.Column(db.String(200))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class Result(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    student = db.Column(db.String(200))
+
+    exam_title = db.Column(db.String(200))
+
+    subject = db.Column(db.String(200))
+
+    score = db.Column(db.Integer)
+
+    school = db.Column(db.String(200))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class Grade(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    student = db.Column(db.String(200))
+
+    subject = db.Column(db.String(200))
+
+    score = db.Column(db.String(100))
+
+    remark = db.Column(db.String(300))
+
+    teacher = db.Column(db.String(200))
+
+    school = db.Column(db.String(200))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class Message(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    sender = db.Column(db.String(200))
+
+    role = db.Column(db.String(100))
+
+    school = db.Column(db.String(200))
+
+    message = db.Column(db.Text)
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+
+class Subscription(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    school = db.Column(db.String(200))
+
+    plan = db.Column(db.String(100))
+
+    status = db.Column(db.String(100))
+
+    created_at = db.Column(
+        db.DateTime,
+        default=db.func.current_timestamp()
+    )
+
+# =========================================
 # HOME
 # =========================================
 @app.route("/")
@@ -89,7 +256,6 @@ def home():
 def register():
 
     users = load_json(USERS_FILE)
-    schools = load_json(SCHOOLS_FILE)
 
     if request.method == "POST":
 
@@ -121,6 +287,8 @@ def register():
         flash("Account created successfully!", "success")
 
         return redirect(url_for("login"))
+
+    schools = load_json(SCHOOLS_FILE)
 
     return render_template(
         "register.html",
@@ -179,12 +347,9 @@ def student_dashboard():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    homework = load_json(HOMEWORK_FILE)
-
     return render_template(
         "student_dashboard.html",
-        user=session["fullname"],
-        homework=homework
+        user=session["fullname"]
     )
 
 # =========================================
@@ -229,353 +394,9 @@ def school_admin_dashboard():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    users = load_json(USERS_FILE)
-
-    students = []
-    teachers = []
-
-    for user in users:
-
-        if user["school"] == session["school"]:
-
-            if user["role"] == "student":
-                students.append(user)
-
-            elif user["role"] == "teacher":
-                teachers.append(user)
-
     return render_template(
         "school_admin_dashboard.html",
-        user=session["fullname"],
-        students=students,
-        teachers=teachers,
-        school=session["school"]
-    )
-
-# =========================================
-# ADD SCHOOL
-# =========================================
-@app.route("/add-school", methods=["POST"])
-def add_school():
-
-    schools = load_json(SCHOOLS_FILE)
-
-    school_name = request.form.get("school_name")
-
-    schools.append({
-        "name": school_name
-    })
-
-    save_json(SCHOOLS_FILE, schools)
-
-    flash("School added!", "success")
-
-    return redirect(url_for("admin_dashboard"))
-
-# =========================================
-# HOMEWORK SYSTEM
-# =========================================
-@app.route("/add-homework", methods=["GET", "POST"])
-def add_homework():
-
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    homework = load_json(HOMEWORK_FILE)
-
-    if request.method == "POST":
-
-        new_homework = {
-            "title": request.form.get("title"),
-            "subject": request.form.get("subject"),
-            "description": request.form.get("description"),
-            "deadline": request.form.get("deadline"),
-            "teacher": session["fullname"],
-            "school": session["school"]
-        }
-
-        homework.append(new_homework)
-
-        save_json(HOMEWORK_FILE, homework)
-
-        flash("Homework uploaded!", "success")
-
-        return redirect(url_for("teacher_dashboard"))
-
-    return render_template("upload_homework.html")
-
-# =========================================
-# CBT EXAM ENGINE
-# =========================================
-@app.route("/create-exam", methods=["GET", "POST"])
-def create_exam():
-
-    exams = load_json(EXAMS_FILE)
-
-    if request.method == "POST":
-
-        new_exam = {
-            "id": len(exams) + 1,
-            "title": request.form.get("title"),
-            "subject": request.form.get("subject"),
-            "question": request.form.get("question"),
-            "option_a": request.form.get("option_a"),
-            "option_b": request.form.get("option_b"),
-            "option_c": request.form.get("option_c"),
-            "option_d": request.form.get("option_d"),
-            "correct_answer": request.form.get("correct_answer"),
-            "teacher": session["fullname"],
-            "school": session["school"]
-        }
-
-        exams.append(new_exam)
-
-        save_json(EXAMS_FILE, exams)
-
-        flash("Exam created!", "success")
-
-        return redirect(url_for("teacher_dashboard"))
-
-    return render_template("create_exam.html")
-
-# =========================================
-# VIEW EXAMS
-# =========================================
-@app.route("/exams")
-def exams():
-
-    exams = load_json(EXAMS_FILE)
-
-    school_exams = []
-
-    for exam in exams:
-
-        if exam["school"] == session["school"]:
-            school_exams.append(exam)
-
-    return render_template(
-        "exams.html",
-        exams=school_exams
-    )
-
-# =========================================
-# TAKE EXAM
-# =========================================
-@app.route("/take-exam/<int:exam_id>", methods=["GET", "POST"])
-def take_exam(exam_id):
-
-    exams = load_json(EXAMS_FILE)
-    results = load_json(RESULTS_FILE)
-
-    selected_exam = None
-
-    for exam in exams:
-
-        if exam["id"] == exam_id:
-            selected_exam = exam
-            break
-
-    if request.method == "POST":
-
-        answer = request.form.get("answer")
-
-        score = 0
-
-        if answer == selected_exam["correct_answer"]:
-            score = 100
-
-        results.append({
-            "student": session["fullname"],
-            "exam_title": selected_exam["title"],
-            "subject": selected_exam["subject"],
-            "score": score,
-            "school": session["school"]
-        })
-
-        save_json(RESULTS_FILE, results)
-
-        return render_template(
-            "exam_result.html",
-            score=score
-        )
-
-    return render_template(
-        "take_exam.html",
-        exam=selected_exam
-    )
-
-# =========================================
-# RESULTS
-# =========================================
-@app.route("/results")
-def results():
-
-    results = load_json(RESULTS_FILE)
-
-    my_results = []
-
-    for result in results:
-
-        if result["student"] == session["fullname"]:
-            my_results.append(result)
-
-    return render_template(
-        "results.html",
-        results=my_results
-    )
-
-# =========================================
-# FILE UPLOAD SYSTEM
-# =========================================
-@app.route("/upload-file", methods=["GET", "POST"])
-def upload_file():
-
-    if request.method == "POST":
-
-        uploaded_file = request.files["file"]
-
-        if uploaded_file.filename != "":
-
-            filename = secure_filename(uploaded_file.filename)
-
-            uploaded_file.save(
-                os.path.join(
-                    app.config["UPLOAD_FOLDER"],
-                    filename
-                )
-            )
-
-            flash("File uploaded successfully!", "success")
-
-            return redirect(url_for("upload_file"))
-
-    return render_template("upload_file.html")
-
-# =========================================
-# REAL-TIME CHAT
-# =========================================
-@app.route("/chat-room", methods=["GET", "POST"])
-def chat_room():
-
-    messages = load_json(MESSAGES_FILE)
-
-    if request.method == "POST":
-
-        new_message = {
-            "sender": session["fullname"],
-            "role": session["role"],
-            "school": session["school"],
-            "message": request.form.get("message")
-        }
-
-        messages.append(new_message)
-
-        save_json(MESSAGES_FILE, messages)
-
-        return redirect(url_for("chat_room"))
-
-    school_messages = []
-
-    for msg in messages:
-
-        if msg["school"] == session["school"]:
-            school_messages.append(msg)
-
-    return render_template(
-        "chat_room.html",
-        messages=school_messages
-    )
-
-# =========================================
-# GRADING SYSTEM
-# =========================================
-@app.route("/add-grade", methods=["GET", "POST"])
-def add_grade():
-
-    grades = load_json(GRADES_FILE)
-    users = load_json(USERS_FILE)
-
-    if request.method == "POST":
-
-        grades.append({
-            "student": request.form.get("student"),
-            "subject": request.form.get("subject"),
-            "score": request.form.get("score"),
-            "remark": request.form.get("remark"),
-            "teacher": session["fullname"],
-            "school": session["school"]
-        })
-
-        save_json(GRADES_FILE, grades)
-
-        flash("Grade added!", "success")
-
-        return redirect(url_for("teacher_dashboard"))
-
-    students = []
-
-    for user in users:
-
-        if (
-            user["role"] == "student" and
-            user["school"] == session["school"]
-        ):
-
-            students.append(user)
-
-    return render_template(
-        "add_grade.html",
-        students=students
-    )
-
-# =========================================
-# MY GRADES
-# =========================================
-@app.route("/my-grades")
-def my_grades():
-
-    grades = load_json(GRADES_FILE)
-
-    my_results = []
-
-    for grade in grades:
-
-        if grade["student"] == session["fullname"]:
-            my_results.append(grade)
-
-    return render_template(
-        "my_grades.html",
-        grades=my_results
-    )
-
-# =========================================
-# SUBSCRIPTION SYSTEM
-# =========================================
-@app.route("/plans")
-def plans():
-
-    plans = [
-        {
-            "name": "Free",
-            "price": "₦0/month"
-        },
-        {
-            "name": "Starter",
-            "price": "₦5,000/month"
-        },
-        {
-            "name": "Pro",
-            "price": "₦15,000/month"
-        },
-        {
-            "name": "Enterprise",
-            "price": "₦50,000/month"
-        }
-    ]
-
-    return render_template(
-        "plans.html",
-        plans=plans
+        user=session["fullname"]
     )
 
 # =========================================
@@ -594,4 +415,8 @@ def logout():
 # RUN APP
 # =========================================
 if __name__ == "__main__":
+
+    with app.app_context():
+        db.create_all()
+
     app.run(debug=True)
