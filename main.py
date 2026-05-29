@@ -265,35 +265,49 @@ def register():
         role = request.form.get("role")
         school = request.form.get("school")
 
+        # check if user already exists in JSON (temporary backup check)
         for user in users:
-
             if user["email"] == email:
-
                 flash("Account already exists!", "danger")
                 return redirect(url_for("register"))
 
+        # hashed password
+        hashed_password = generate_password_hash(password)
+
+        # ================================
+        # SAVE TO SQLITE (NEW PRIMARY WAY)
+        # ================================
+        new_db_user = User(
+            fullname=fullname,
+            email=email,
+            password=hashed_password,
+            role=role,
+            school=school
+        )
+
+        db.session.add(new_db_user)
+        db.session.commit()
+
+        # ================================
+        # KEEP JSON BACKUP (OPTIONAL)
+        # ================================
         new_user = {
             "fullname": fullname,
             "email": email,
-            "password": generate_password_hash(password),
+            "password": hashed_password,
             "role": role,
             "school": school
         }
 
         users.append(new_user)
-
         save_json(USERS_FILE, users)
 
         flash("Account created successfully!", "success")
-
         return redirect(url_for("login"))
 
     schools = load_json(SCHOOLS_FILE)
 
-    return render_template(
-        "register.html",
-        schools=schools
-    )
+    return render_template("register.html", schools=schools)
 
 # =========================================
 # LOGIN
