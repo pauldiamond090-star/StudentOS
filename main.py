@@ -466,7 +466,7 @@ def logout():
 # =========================================
 if __name__ == "__main__":
 
-    with app.aTruepp_context():
+    with app.app_context():
         db.create_all()
 
-    app.run(debug=)
+    app.run(debug=True)
