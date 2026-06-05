@@ -6,3 +6,4 @@ psycopg2-binary
 Flask-SocketIO
 eventlet
 Authlib
+requests
