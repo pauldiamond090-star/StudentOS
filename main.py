@@ -4,12 +4,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import json
 import os
+from authlib.integrations.flask_client import OAuth
 
 # =========================================
 # APP CONFIG
 # =========================================
 app = Flask(__name__)
+# =========================================
+# GOOGLE OAUTH CONFIG
+# =========================================
 
+app.config["GOOGLE_CLIENT_ID"] = os.getenv("GOOGLE_CLIENT_ID")
+app.config["GOOGLE_CLIENT_SECRET"] = os.getenv("GOOGLE_CLIENT_SECRET")
+
+oauth = OAuth(app)
+
+google = oauth.register(
+    name="google",
+    client_id=app.config["GOOGLE_CLIENT_ID"],
+    client_secret=app.config["GOOGLE_CLIENT_SECRET"],
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email profile"}
+)
 app.secret_key = "edunova_secret_2026"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -351,7 +367,27 @@ def login():
         flash("Invalid login details!", "danger")
 
     return render_template("login.html")
+# =========================================
+# GOOGLE LOGIN
+# =========================================
 
+@app.route("/google-login")
+def google_login():
+    redirect_uri = url_for("google_callback", _external=True)
+    return google.authorize_redirect(redirect_uri)
+
+
+@app.route("/login/callback")
+def google_callback():
+    token = google.authorize_access_token()
+    user_info = token["userinfo"]
+
+    session["user"] = user_info["email"]
+    session["fullname"] = user_info["name"]
+    session["role"] = "student"
+
+    flash("Google login successful!", "success")
+    return redirect(url_for("student_dashboard"))
 # =========================================
 # STUDENT DASHBOARD
 # =========================================
@@ -430,7 +466,7 @@ def logout():
 # =========================================
 if __name__ == "__main__":
 
-    with app.app_context():
+    with app.aTruepp_context():
         db.create_all()
 
-    app.run(debug=True)
+    app.run(debug=)
